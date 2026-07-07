@@ -1,0 +1,91 @@
+/* plotcp – plot control panel styles */
+
+.plotcp_category {
+    margin-bottom: 16px;
+}
+
+.plotcp_plot_row td {
+    vertical-align: top;
+}
+
+.plotcp_badge {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 9px;
+    font-size: 0.85em;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.plotcp_badge--preview {
+    background: #f9edbe;
+    border: 1px solid #e0c243;
+    color: #6b5900;
+}
+
+.plotcp_badge--archived {
+    background: #e8e8e8;
+    border: 1px solid #bbb;
+    color: #555;
+}
+
+.plotcp_badge--group {
+    background: #e3edf7;
+    border: 1px solid #9db8d2;
+    color: #26537c;
+}
+
+.plotcp_meta {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 2px;
+}
+
+.plotcp_description {
+    line-height: 1.5;
+}
+
+.plotcp_form_row label {
+    font-weight: bold;
+}
+
+.plotcp_group_checkboxes {
+    columns: 2;
+    -webkit-columns: 2;
+    -moz-columns: 2;
+}
+
+.plotcp_group_checkboxes label {
+    display: block;
+    margin: 2px 0;
+}
+
+.plotcp_date_inputs input {
+    width: 4em;
+    text-align: center;
+}
+
+.plotcp_date_inputs input.plotcp_date_year {
+    width: 6em;
+}
+
+.plotcp_scene_box {
+    margin-top: 10px;
+}
+
+.plotcp_scene_box .plotcp_scene_box_inner {
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.plotcp_inline_form {
+    display: inline;
+}
+
+.plotcp_button_small {
+    font-size: 0.9em;
+    padding: 2px 8px;
+}

@@ -1,0 +1,4 @@
+.vscode/
+*.sql
+*.bak
+*.backup

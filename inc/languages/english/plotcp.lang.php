@@ -1,0 +1,102 @@
+<?php
+/**
+ * plotcp – frontend language file (English)
+ */
+
+$l['plotcp'] = 'Plots';
+$l['plotcp_nav'] = 'Plot Control Panel';
+
+// List view
+$l['plotcp_mode_active'] = 'Active plots';
+$l['plotcp_mode_archive'] = 'Archive';
+$l['plotcp_btn_submit_plot'] = 'Submit a plot';
+$l['plotcp_btn_groups'] = 'Plotting groups';
+$l['plotcp_no_plots'] = 'There are no plots in this view yet.';
+$l['plotcp_badge_preview'] = 'Preview';
+$l['plotcp_badge_archived'] = 'Archived';
+$l['plotcp_col_plot'] = 'Plot';
+$l['plotcp_col_groups'] = 'Plotting groups';
+$l['plotcp_col_date'] = 'Date';
+$l['plotcp_col_location'] = 'Location';
+
+// Detail view
+$l['plotcp_view_category'] = 'Category';
+$l['plotcp_view_groups'] = 'Plotting groups';
+$l['plotcp_view_location'] = 'Location';
+$l['plotcp_view_contacts'] = 'Contact persons';
+$l['plotcp_view_date'] = 'Date';
+$l['plotcp_view_scenes'] = 'Linked scenes';
+$l['plotcp_view_no_scenes'] = 'No scenes have been linked to this plot yet.';
+$l['plotcp_view_no_groups'] = 'No plotting groups linked.';
+$l['plotcp_btn_publish'] = 'Publish plot';
+$l['plotcp_btn_archive'] = 'Move to archive';
+$l['plotcp_btn_unarchive'] = 'Restore from archive';
+$l['plotcp_submitted_by'] = 'Submitted by';
+
+// Groups page
+$l['plotcp_groups_title'] = 'Plotting groups';
+$l['plotcp_groups_members'] = 'Members';
+$l['plotcp_btn_join'] = 'Join';
+$l['plotcp_btn_leave'] = 'Leave';
+$l['plotcp_group_propose'] = 'Propose a new plotting group';
+$l['plotcp_group_name'] = 'Group name';
+$l['plotcp_group_description'] = 'Description';
+$l['plotcp_btn_propose'] = 'Propose group';
+$l['plotcp_group_pending_note'] = 'Waiting for team approval';
+$l['plotcp_no_groups'] = 'There are no plotting groups yet.';
+
+// Submission form
+$l['plotcp_submit_title'] = 'Submit a plot';
+$l['plotcp_submit_note'] = 'Your plot is saved as a preview first and becomes visible for everyone once the team publishes it.';
+$l['plotcp_field_title'] = 'Plot name';
+$l['plotcp_field_category'] = 'Category';
+$l['plotcp_field_groups'] = 'Plotting groups';
+$l['plotcp_field_location'] = 'Location';
+$l['plotcp_field_contacts'] = 'Contact persons';
+$l['plotcp_field_contacts_desc'] = 'Usernames, separated by commas.';
+$l['plotcp_field_description'] = 'Description';
+$l['plotcp_field_date'] = 'Plot has a date';
+$l['plotcp_field_date_desc'] = 'Optional IC date range. Leave the end date empty for single-day plots. Negative years are allowed.';
+$l['plotcp_field_start'] = 'Start (day / month / year)';
+$l['plotcp_field_end'] = 'End (day / month / year)';
+$l['plotcp_btn_submit'] = 'Submit plot';
+
+// Scene box (showthread)
+$l['plotcp_scene_box_title'] = 'Plot';
+$l['plotcp_scene_linked'] = 'This scene belongs to the plot:';
+$l['plotcp_scene_link_label'] = 'Link this scene to a plot:';
+$l['plotcp_scene_select_default'] = 'Select a plot...';
+$l['plotcp_btn_link'] = 'Link';
+$l['plotcp_btn_unlink'] = 'Unlink';
+
+// Success messages (redirects)
+$l['plotcp_published'] = 'The plot has been published. Group members are being notified.';
+$l['plotcp_archived'] = 'The plot has been moved to the archive.';
+$l['plotcp_unarchived'] = 'The plot has been restored from the archive.';
+$l['plotcp_joined'] = 'You joined the plotting group.';
+$l['plotcp_left'] = 'You left the plotting group.';
+$l['plotcp_plot_submitted'] = 'Thank you! Your plot has been submitted and is now waiting as a preview.';
+$l['plotcp_group_submitted'] = 'Thank you! Your group proposal has been submitted and is waiting for team approval.';
+$l['plotcp_thread_linked'] = 'The scene has been linked to the plot.';
+$l['plotcp_thread_unlinked'] = 'The scene has been unlinked from the plot.';
+
+// Errors
+$l['plotcp_error_invalid_plot'] = 'The requested plot does not exist.';
+$l['plotcp_error_invalid_group'] = 'The requested plotting group does not exist.';
+$l['plotcp_error_invalid_category'] = 'Please select a valid category.';
+$l['plotcp_error_title_missing'] = 'Please enter a plot name.';
+$l['plotcp_error_group_name_missing'] = 'Please enter a group name.';
+$l['plotcp_error_group_name_exists'] = 'A plotting group with this name already exists.';
+$l['plotcp_error_unknown_contacts'] = 'Unknown username(s) in the contact persons field: {1}';
+$l['plotcp_error_submissions_disabled'] = 'Plot submissions are currently disabled.';
+$l['plotcp_error_group_submissions_disabled'] = 'Group proposals are currently disabled.';
+$l['plotcp_error_already_linked'] = 'This thread is already linked to a plot.';
+$l['plotcp_error_not_scene_forum'] = 'Scenes in this forum cannot be linked to plots.';
+$l['plotcp_error_already_published'] = 'This plot is already published.';
+
+// Date validation errors (keys shared with the ACP module)
+$l['plotcp_error_start_incomplete'] = 'Please fill in the complete start date (day, month and year).';
+$l['plotcp_error_start_invalid'] = 'The start date is not a valid calendar date.';
+$l['plotcp_error_end_partial'] = 'Please fill in the complete end date or leave it entirely empty.';
+$l['plotcp_error_end_invalid'] = 'The end date is not a valid calendar date.';
+$l['plotcp_error_end_before_start'] = 'The end date must not be before the start date.';
