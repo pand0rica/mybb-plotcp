@@ -1,0 +1,274 @@
+<?php
+/**
+ * plotcp – frontend entry point.
+ *
+ * Views: plot list (grouped by category, active/archive), plot detail with
+ * linked scenes, groups page (join/leave, propose), plot submission form.
+ * Every state-changing action requires POST + verify_post_check().
+ */
+
+define('IN_MYBB', 1);
+define('THIS_SCRIPT', 'plotcp.php');
+
+$templatelist = 'plotcp_index,plotcp_index_category,plotcp_index_plot_bit,plotcp_index_empty,'
+    . 'plotcp_view,plotcp_view_scene_bit,plotcp_view_teambar,plotcp_groups,plotcp_groups_bit,'
+    . 'plotcp_groups_pending_bit,plotcp_groups_propose,plotcp_submit_form';
+
+require_once './global.php';
+
+// Inactive plugin: the hook/loader functions from inc/plugins/plotcp.php are
+// not loaded, so bail out with the default error instead of fataling.
+if (!function_exists('plotcp_load_core')) {
+    error_no_permission();
+}
+
+plotcp_load_core();
+require_once MYBB_ROOT . 'inc/plugins/plotcp/core/frontend.php';
+
+$lang->load('plotcp');
+
+add_breadcrumb($lang->plotcp, 'plotcp.php');
+
+$action = $mybb->get_input('action');
+
+/* -------------------------------------------------------------------------
+ * POST actions
+ * ---------------------------------------------------------------------- */
+
+$post_actions = ['do_submit', 'submit_group', 'join_group', 'leave_group',
+                 'publish', 'archive', 'unarchive', 'link_thread', 'unlink_thread'];
+
+if (in_array($action, $post_actions, true)) {
+    if ($mybb->request_method !== 'post') {
+        error_no_permission();
+    }
+    verify_post_check($mybb->get_input('my_post_key'));
+
+    if ((int)$mybb->user['uid'] <= 0) {
+        error_no_permission();
+    }
+}
+
+switch ($action) {
+    /* ---- plot submission ---------------------------------------------- */
+    case 'do_submit':
+        if (!isset($mybb->settings['plotcp_allow_plot_submissions'])
+            || (int)$mybb->settings['plotcp_allow_plot_submissions'] !== 1
+        ) {
+            error($lang->plotcp_error_submissions_disabled);
+        }
+
+        $title = trim((string)$mybb->get_input('title'));
+        if ($title === '') {
+            error($lang->plotcp_error_title_missing);
+        }
+
+        $cid = (int)$mybb->get_input('cid', MyBB::INPUT_INT);
+        if ($cid <= 0 || !Plotcp_Database::getCategory($cid)) {
+            error($lang->plotcp_error_invalid_category);
+        }
+
+        $gids = Plotcp_Database::filterApprovedGids($mybb->get_input('gids', MyBB::INPUT_ARRAY));
+
+        $contacts = Plotcp_Database::parseContactInput((string)$mybb->get_input('contacts'));
+        if ($contacts['unknown']) {
+            error($lang->sprintf($lang->plotcp_error_unknown_contacts,
+                htmlspecialchars_uni(implode(', ', $contacts['unknown']))));
+        }
+
+        $dates = Plotcp_Database::validateDates(
+            $mybb->get_input('has_date', MyBB::INPUT_INT) === 1,
+            [
+                'start_year' => $mybb->get_input('start_year'), 'start_month' => $mybb->get_input('start_month'),
+                'start_day'  => $mybb->get_input('start_day'),
+                'end_year'   => $mybb->get_input('end_year'),   'end_month'   => $mybb->get_input('end_month'),
+                'end_day'    => $mybb->get_input('end_day'),
+            ]
+        );
+        if (!$dates['ok']) {
+            error($lang->{'plotcp_' . $dates['error']});
+        }
+
+        $pid = (int)$db->insert_query('plotcp_plots', array_merge([
+            'cid'              => $cid,
+            'title'            => $db->escape_string($title),
+            'location'         => $db->escape_string(trim((string)$mybb->get_input('location'))),
+            'contacts'         => $db->escape_string(implode(',', $contacts['uids'])),
+            'description'      => $db->escape_string((string)$mybb->get_input('description')),
+            'visible'          => 0,
+            'archived'         => 0,
+            'submitted_uid'    => (int)$mybb->user['uid'],
+            'created_dateline' => TIME_NOW,
+        ], $dates['fields']));
+        Plotcp_Database::setPlotGroups($pid, $gids);
+
+        Plotcp_Alerts::sendSubmissionTeam('plot', $title, 'plotcp.php?action=view&pid=' . $pid, $pid);
+
+        redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_plot_submitted);
+        break;
+
+    /* ---- group proposal ------------------------------------------------ */
+    case 'submit_group':
+        if (!isset($mybb->settings['plotcp_allow_group_submissions'])
+            || (int)$mybb->settings['plotcp_allow_group_submissions'] !== 1
+        ) {
+            error($lang->plotcp_error_group_submissions_disabled);
+        }
+
+        $name = trim((string)$mybb->get_input('name'));
+        if ($name === '') {
+            error($lang->plotcp_error_group_name_missing);
+        }
+        if (Plotcp_Database::groupNameExists($name)) {
+            error($lang->plotcp_error_group_name_exists);
+        }
+
+        $gid = (int)$db->insert_query('plotcp_groups', [
+            'name'          => $db->escape_string($name),
+            'description'   => $db->escape_string(trim((string)$mybb->get_input('description'))),
+            'approved'      => 0,
+            'submitted_uid' => (int)$mybb->user['uid'],
+            'dateline'      => TIME_NOW,
+        ]);
+
+        Plotcp_Alerts::sendSubmissionTeam('group', $name, 'plotcp.php?action=groups', $gid);
+
+        redirect('plotcp.php?action=groups', $lang->plotcp_group_submitted);
+        break;
+
+    /* ---- group membership ---------------------------------------------- */
+    case 'join_group':
+    case 'leave_group':
+        $gid   = (int)$mybb->get_input('gid', MyBB::INPUT_INT);
+        $group = Plotcp_Database::getGroup($gid);
+        if (!$group || (int)$group['approved'] !== 1) {
+            error($lang->plotcp_error_invalid_group);
+        }
+
+        $uid = (int)$mybb->user['uid'];
+        if ($action === 'join_group') {
+            // INSERT IGNORE + UNIQUE(gid, uid): double joins stay a no-op
+            $db->write_query('INSERT IGNORE INTO ' . TABLE_PREFIX . 'plotcp_group_members
+                (gid, uid, dateline) VALUES (' . $gid . ', ' . $uid . ', ' . TIME_NOW . ')');
+            redirect('plotcp.php?action=groups', $lang->plotcp_joined);
+        } else {
+            $db->delete_query('plotcp_group_members', 'gid = ' . $gid . ' AND uid = ' . $uid);
+            redirect('plotcp.php?action=groups', $lang->plotcp_left);
+        }
+        break;
+
+    /* ---- publish / archive (team) --------------------------------------- */
+    case 'publish':
+    case 'archive':
+    case 'unarchive':
+        if (!Plotcp_Permissions::isTeam($mybb->user)) {
+            error_no_permission();
+        }
+
+        $pid  = (int)$mybb->get_input('pid', MyBB::INPUT_INT);
+        $plot = Plotcp_Database::getPlot($pid);
+        if (!$plot) {
+            error($lang->plotcp_error_invalid_plot);
+        }
+
+        if ($action === 'publish') {
+            if ((int)$plot['visible'] === 1) {
+                error($lang->plotcp_error_already_published);
+            }
+            $db->update_query('plotcp_plots',
+                ['visible' => 1, 'published_dateline' => TIME_NOW], 'pid = ' . $pid);
+            Plotcp_Alerts::sendPlotPublished($plot, Plotcp_Database::getPlotGids($pid));
+            redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_published);
+        } elseif ($action === 'archive') {
+            $db->update_query('plotcp_plots', ['archived' => 1], 'pid = ' . $pid);
+            redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_archived);
+        } else {
+            $db->update_query('plotcp_plots', ['archived' => 0], 'pid = ' . $pid);
+            redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_unarchived);
+        }
+        break;
+
+    /* ---- scene linking --------------------------------------------------- */
+    case 'link_thread':
+    case 'unlink_thread':
+        $tid    = (int)$mybb->get_input('tid', MyBB::INPUT_INT);
+        $thread = get_thread($tid);
+        if (!$thread || (int)$thread['visible'] < 0) {
+            error($lang->error_invalidthread);
+        }
+        // never trust the form: repeat the forum check server-side
+        if (!Plotcp_Permissions::isSceneForum((int)$thread['fid'])) {
+            error($lang->plotcp_error_not_scene_forum);
+        }
+        if (!Plotcp_Permissions::canLinkThread($mybb->user, $thread)) {
+            error_no_permission();
+        }
+
+        if ($action === 'link_thread') {
+            $pid  = (int)$mybb->get_input('pid', MyBB::INPUT_INT);
+            $plot = Plotcp_Database::getPlot($pid);
+            if (!$plot) {
+                error($lang->plotcp_error_invalid_plot);
+            }
+            if ((int)$plot['visible'] === 0 && !Plotcp_Permissions::isTeam($mybb->user)) {
+                error($lang->plotcp_error_invalid_plot);
+            }
+
+            $existing = $db->fetch_array($db->simple_select('plotcp_plot_threads', 'id', 'tid = ' . $tid));
+            if ($existing) {
+                error($lang->plotcp_error_already_linked);
+            }
+            // INSERT IGNORE + UNIQUE(tid) closes the remaining race window
+            $db->write_query('INSERT IGNORE INTO ' . TABLE_PREFIX . 'plotcp_plot_threads
+                (pid, tid, uid, dateline)
+                VALUES (' . $pid . ', ' . $tid . ', ' . (int)$mybb->user['uid'] . ', ' . TIME_NOW . ')');
+
+            redirect(get_thread_link($tid), $lang->plotcp_thread_linked);
+        } else {
+            $db->delete_query('plotcp_plot_threads', 'tid = ' . $tid);
+            redirect(get_thread_link($tid), $lang->plotcp_thread_unlinked);
+        }
+        break;
+
+    /* ---- views ------------------------------------------------------------ */
+    case 'view':
+        $pid  = (int)$mybb->get_input('pid', MyBB::INPUT_INT);
+        $plot = Plotcp_Database::getPlot($pid);
+        if (!$plot) {
+            error($lang->plotcp_error_invalid_plot);
+        }
+        if ((int)$plot['visible'] === 0 && !Plotcp_Permissions::canViewPreview($mybb->user, $plot)) {
+            error($lang->plotcp_error_invalid_plot);
+        }
+
+        add_breadcrumb(htmlspecialchars_uni((string)$plot['title']));
+        output_page(Plotcp_Frontend::renderView($plot));
+        break;
+
+    case 'submit':
+        if ((int)$mybb->user['uid'] <= 0) {
+            error_no_permission();
+        }
+        if (!isset($mybb->settings['plotcp_allow_plot_submissions'])
+            || (int)$mybb->settings['plotcp_allow_plot_submissions'] !== 1
+        ) {
+            error($lang->plotcp_error_submissions_disabled);
+        }
+        if (!Plotcp_Database::getCategories()) {
+            error($lang->plotcp_error_invalid_category);
+        }
+
+        add_breadcrumb($lang->plotcp_submit_title);
+        output_page(Plotcp_Frontend::renderSubmitForm());
+        break;
+
+    case 'groups':
+        add_breadcrumb($lang->plotcp_groups_title);
+        output_page(Plotcp_Frontend::renderGroups());
+        break;
+
+    default:
+        $mode = $mybb->get_input('mode') === 'archive' ? 'archive' : 'active';
+        output_page(Plotcp_Frontend::renderList($mode));
+        break;
+}
