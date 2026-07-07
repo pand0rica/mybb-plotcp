@@ -46,8 +46,19 @@ class Plotcp_Alerts
 
         $sent = 0;
         try {
-            $type_manager  = MybbStuff_MyAlerts_AlertTypeManager::getInstance();
+            $type_manager = MybbStuff_MyAlerts_AlertTypeManager::getInstance();
+            if (!$type_manager) {
+                global $db, $cache;
+                $type_manager = MybbStuff_MyAlerts_AlertTypeManager::createInstance($db, $cache);
+            }
             $alert_manager = MybbStuff_MyAlerts_AlertManager::getInstance();
+            if (!$alert_manager && $type_manager) {
+                // MyAlerts creates its instances at global_start; in other
+                // contexts (CLI, early hooks) we create them ourselves.
+                global $db, $cache, $plugins;
+                $alert_manager = MybbStuff_MyAlerts_AlertManager::createInstance(
+                    $mybb, $db, $cache, $plugins, $type_manager);
+            }
             if (!$type_manager || !$alert_manager) {
                 return 0;
             }
@@ -68,6 +79,11 @@ class Plotcp_Alerts
                 $alert_manager->addAlert($alert);
                 $sent++;
             }
+
+            // addAlert() only queues; MyAlerts flushes the queue at the end of
+            // a web request, but not in CLI/early-hook contexts. Committing
+            // here is safe: the queue is emptied, later commits find nothing.
+            $alert_manager->commit();
         } catch (Throwable $e) {
             // Incompatible MyAlerts version – never break the page for alerts.
         }
