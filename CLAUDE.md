@@ -89,3 +89,9 @@ cleanup proof and injection idempotency), `tests/cli-selftest.php` (calendar
 math, date validation, group diff, alert dedupe – 32 checks). tar pipe and
 ssh-heredoc cannot be combined (both want stdin) – deploy first, then run.
 `tests/` is not part of a release zip. ACP click paths are tested manually.
+
+**NEVER run `cli-plugin.php uninstall` on the shared test forum** – it drops
+all six tables and wipes the user's real plots/categories/groups/settings.
+The test forum holds live configuration. For lifecycle/cleanup proofs use a
+throwaway install only. On the shared forum use `activate` (idempotent) at
+most; use `SELFTEST`-prefixed fixtures and delete them individually.
