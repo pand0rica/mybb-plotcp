@@ -38,6 +38,11 @@ Class/core split (like rpgcalendar/Blacklist):
 - `inc/plugins/plotcp/calendar_provider.php` – `rpgcalendar_collect_events`
   handler: one indexed query, titles raw, `visible = 1` only, archived plots
   stay in the calendar on purpose
+- `forumdisplay_thread` hook (`plotcp_handle_forumdisplay_thread` in the main
+  file) – prepends `[Plot] ` to `$thread['subject']` for linked threads. Runs
+  before MyBB escapes the subject (line ~1092), so the plot title stays raw
+  here; the tid→plot map is built once per page from `$threadcache`. Preview
+  names only shown to viewers who pass `canViewPreview()`.
 - `plotcp.php` (MyBB root) – frontend entry, action dispatch, all POST handlers
 - `admin/modules/tools/plotcp.php` – ACP module (loads `$lang->load('plotcp')`
   itself; tabs via `output_nav_tabs` with description keys)

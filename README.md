@@ -128,6 +128,10 @@ forums:
 A thread can belong to one plot at a time. Published plots are selectable for
 everyone; the team can additionally pick preview plots.
 
+Once a thread is linked, its plot appears in square brackets before the thread
+title in the forum listing (`[Plot] Thread title`). Preview-plot names stay
+hidden from users who may not see the preview.
+
 ![Scene box](docs/screenshots/scene-box.png)
 
 ### Alerts (MyAlerts)

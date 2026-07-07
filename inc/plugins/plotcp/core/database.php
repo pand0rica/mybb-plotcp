@@ -361,6 +361,39 @@ class Plotcp_Database
         return $valid;
     }
 
+    /**
+     * Plot info for a batch of threads (forum listing prefix). One query.
+     *
+     * @return array tid => ['title','visible','submitted_uid']
+     */
+    public static function getPlotsForThreads(array $tids): array
+    {
+        global $db;
+
+        $tids = array_values(array_unique(array_filter(array_map('intval', $tids),
+            function ($tid) { return $tid > 0; })));
+        if (!$tids) {
+            return [];
+        }
+
+        $map = [];
+        $query = $db->query('
+            SELECT pt.tid, p.title, p.visible, p.submitted_uid
+            FROM ' . TABLE_PREFIX . 'plotcp_plot_threads pt
+            INNER JOIN ' . TABLE_PREFIX . 'plotcp_plots p ON (p.pid = pt.pid)
+            WHERE pt.tid IN (' . implode(',', $tids) . ')
+        ');
+        while ($row = $db->fetch_array($query)) {
+            $map[(int)$row['tid']] = [
+                'title'         => (string)$row['title'],
+                'visible'       => (int)$row['visible'],
+                'submitted_uid' => (int)$row['submitted_uid'],
+            ];
+        }
+
+        return $map;
+    }
+
     /* ---------------------------------------------------------------------
      * Contacts (plot contact persons, stored as CSV of validated uids)
      * ------------------------------------------------------------------ */

@@ -20,6 +20,7 @@ $plugins->add_hook('xmlhttp',                        'plotcp_register_alert_form
 $plugins->add_hook('showthread_start',               'plotcp_handle_showthread');
 $plugins->add_hook('newthread_start',                'plotcp_handle_newthread');
 $plugins->add_hook('newthread_do_newthread_end',     'plotcp_handle_newthread_save');
+$plugins->add_hook('forumdisplay_thread',            'plotcp_handle_forumdisplay_thread');
 $plugins->add_hook('rpgcalendar_collect_events',     'plotcp_rpgcalendar_collect');
 $plugins->add_hook('class_moderation_delete_thread', 'plotcp_handle_thread_delete');
 $plugins->add_hook('admin_tools_menu',               'plotcp_admin_menu');
@@ -213,6 +214,39 @@ function plotcp_handle_newthread_save(): void
     $db->write_query('INSERT IGNORE INTO ' . TABLE_PREFIX . 'plotcp_plot_threads
         (pid, tid, uid, dateline)
         VALUES (' . $pid . ', ' . (int)$tid . ', ' . (int)$mybb->user['uid'] . ', ' . TIME_NOW . ')');
+}
+
+/**
+ * Prepends "[Plot name] " to the thread subject on forum listings for threads
+ * linked to a plot. Runs at the top of the forumdisplay thread loop where
+ * $thread['subject'] is still raw – MyBB escapes it afterwards, so the plot
+ * title must stay raw here to avoid double escaping. The tid→plot map is built
+ * once per page from $threadcache (one query). Preview plots only show their
+ * name to viewers who may see the preview.
+ */
+function plotcp_handle_forumdisplay_thread(): void
+{
+    global $thread, $threadcache, $mybb;
+
+    static $map = null;
+
+    if ($map === null) {
+        plotcp_load_core();
+        $tids = is_array($threadcache) ? array_keys($threadcache) : [];
+        $map = Plotcp_Database::getPlotsForThreads($tids);
+    }
+
+    $tid = (int)(isset($thread['tid']) ? $thread['tid'] : 0);
+    if (!isset($map[$tid])) {
+        return;
+    }
+
+    $plot = $map[$tid];
+    if ($plot['visible'] !== 1 && !Plotcp_Permissions::canViewPreview($mybb->user, $plot)) {
+        return;
+    }
+
+    $thread['subject'] = '[' . $plot['title'] . '] ' . $thread['subject'];
 }
 
 /**

@@ -26,6 +26,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   directly in the new-thread form (dropdown below the post icons) and, in
   existing threads, via a box below the first post (thread starter and team).
   Plot pages list linked scenes; links are cleaned up when threads are deleted.
+- Forum listing: threads linked to a plot show the plot name in square
+  brackets before the thread title (`[Plot] Subject`). Preview-plot names are
+  only shown to users who may see the preview.
 - Optional IC date range per plot: proleptic Gregorian calendar, astronomical
   year numbering (year 0 exists, negative years allowed), `start_key`/
   `end_key` sort keys computed in PHP.
