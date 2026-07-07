@@ -33,6 +33,8 @@ $l['plotcp_admin_filter_archived'] = 'Archived';
 
 // Controls
 $l['plotcp_admin_edit'] = 'Edit';
+$l['plotcp_admin_cancel'] = 'Cancel';
+$l['plotcp_admin_options'] = 'Options';
 $l['plotcp_admin_delete'] = 'Delete';
 $l['plotcp_admin_publish'] = 'Publish';
 $l['plotcp_admin_archive'] = 'Archive';
@@ -95,6 +97,7 @@ $l['plotcp_error_invalid_group'] = 'The requested plotting group does not exist.
 $l['plotcp_error_invalid_category'] = 'Please select a valid category.';
 $l['plotcp_error_title_missing'] = 'Please enter a plot name.';
 $l['plotcp_error_group_name_missing'] = 'Please enter a group name.';
+$l['plotcp_error_category_name_missing'] = 'Please enter a category name.';
 $l['plotcp_error_group_name_exists'] = 'A plotting group with this name already exists.';
 $l['plotcp_error_unknown_contacts'] = 'Unknown username(s) in the contact persons field: {1}';
 $l['plotcp_error_already_published'] = 'This plot is already published.';
