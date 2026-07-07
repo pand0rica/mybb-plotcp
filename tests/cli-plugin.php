@@ -70,10 +70,14 @@ function plotcp_cli_status(): void
         echo "alert types: n/a (MyAlerts not installed)\n";
     }
 
-    // showthread injection count across all template sets
+    // injection counts across all template sets
     $row = $db->fetch_array($db->query("SELECT COUNT(*) AS num FROM " . TABLE_PREFIX . "templates
         WHERE title = 'showthread' AND template LIKE '%{\$plotcp\_scene\_box}%'"));
     echo 'showthread injections: ' . (int)$row['num'] . "\n";
+
+    $row = $db->fetch_array($db->query("SELECT COUNT(*) AS num FROM " . TABLE_PREFIX . "templates
+        WHERE title = 'newthread' AND template LIKE '%{\$plotcp\_newthread\_select}%'"));
+    echo 'newthread injections: ' . (int)$row['num'] . "\n";
 
     $plugins_cache = $cache->read('plugins');
     $active = isset($plugins_cache['active']['plotcp']);

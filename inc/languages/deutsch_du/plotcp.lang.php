@@ -61,6 +61,10 @@ $l['plotcp_field_start'] = 'Beginn (Tag / Monat / Jahr)';
 $l['plotcp_field_end'] = 'Ende (Tag / Monat / Jahr)';
 $l['plotcp_btn_submit'] = 'Plot einreichen';
 
+// Thread-Erstellen-Formular (Szenen-Erstellung)
+$l['plotcp_newthread_label'] = 'Plot';
+$l['plotcp_newthread_desc'] = 'Optional: diese Szene mit einem Plot verknüpfen.';
+
 // Szenen-Box (showthread)
 $l['plotcp_scene_box_title'] = 'Plot';
 $l['plotcp_scene_linked'] = 'Diese Szene gehört zum Plot:';

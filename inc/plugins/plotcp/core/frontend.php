@@ -310,20 +310,7 @@ class Plotcp_Frontend
             return '';
         }
 
-        // linkable plots: published for everyone, previews additionally for team
-        $where = 'visible = 1';
-        if (Plotcp_Permissions::isTeam($mybb->user)) {
-            $where = '1=1';
-        }
-        $plot_options = '';
-        $query = $db->simple_select('plotcp_plots', 'pid, title, visible', $where, ['order_by' => 'title']);
-        while ($plot = $db->fetch_array($query)) {
-            $suffix = (int)$plot['visible'] === 0
-                ? ' [' . htmlspecialchars_uni($lang->plotcp_badge_preview) . ']'
-                : '';
-            $plot_options .= '<option value="' . (int)$plot['pid'] . '">'
-                . htmlspecialchars_uni((string)$plot['title']) . $suffix . '</option>';
-        }
+        $plot_options = self::plotOptionsHtml();
         if ($plot_options === '') {
             return '';
         }
@@ -331,6 +318,58 @@ class Plotcp_Frontend
         eval('$box = "' . $templates->get('plotcp_scene_box_form') . '";');
 
         return $box;
+    }
+
+    /**
+     * Plot select row for the new-thread form ({$plotcp_newthread_select},
+     * injected after {$posticons}). Empty outside configured forums; the
+     * selection survives previews/error roundtrips via plotcp_pid.
+     */
+    public static function buildNewthreadSelect(): string
+    {
+        global $mybb, $lang, $templates, $theme, $fid;
+
+        if ((int)$mybb->user['uid'] <= 0) {
+            return '';
+        }
+        if (!Plotcp_Permissions::isSceneForum((int)$fid)) {
+            return '';
+        }
+
+        $lang->load('plotcp');
+
+        $plot_options = self::plotOptionsHtml((int)$mybb->get_input('plotcp_pid', MyBB::INPUT_INT));
+        if ($plot_options === '') {
+            return '';
+        }
+
+        eval('$row = "' . $templates->get('plotcp_newthread_select') . '";');
+
+        return $row;
+    }
+
+    /**
+     * Option list of linkable plots: published for everyone, previews
+     * additionally for the team.
+     */
+    private static function plotOptionsHtml(int $selected = 0): string
+    {
+        global $mybb, $db, $lang;
+
+        $where = Plotcp_Permissions::isTeam($mybb->user) ? '1=1' : 'visible = 1';
+
+        $plot_options = '';
+        $query = $db->simple_select('plotcp_plots', 'pid, title, visible', $where, ['order_by' => 'title']);
+        while ($plot = $db->fetch_array($query)) {
+            $suffix = (int)$plot['visible'] === 0
+                ? ' [' . htmlspecialchars_uni($lang->plotcp_badge_preview) . ']'
+                : '';
+            $sel = $selected > 0 && (int)$plot['pid'] === $selected ? ' selected="selected"' : '';
+            $plot_options .= '<option value="' . (int)$plot['pid'] . '"' . $sel . '>'
+                . htmlspecialchars_uni((string)$plot['title']) . $suffix . '</option>';
+        }
+
+        return $plot_options;
     }
 
     /* ---------------------------------------------------------------------

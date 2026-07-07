@@ -22,9 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `as_uid = 0`, fallback: all active users).
 - MyAlerts integration as optional dependency (three alert types, all
   user-disableable); the plugin works without MyAlerts.
-- Scene linking: thread starter and team can link threads in configured
-  inplay/archive forums to a plot via a box below the thread; plot pages list
-  linked scenes. Links are cleaned up when threads are deleted.
+- Scene linking: in configured inplay/archive forums a plot can be chosen
+  directly in the new-thread form (dropdown below the post icons) and, in
+  existing threads, via a box below the first post (thread starter and team).
+  Plot pages list linked scenes; links are cleaned up when threads are deleted.
 - Optional IC date range per plot: proleptic Gregorian calendar, astronomical
   year numbering (year 0 exists, negative years allowed), `start_key`/
   `end_key` sort keys computed in PHP.

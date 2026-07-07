@@ -18,6 +18,8 @@ if (!defined('IN_MYBB')) {
 $plugins->add_hook('global_start',                   'plotcp_register_alert_formatter');
 $plugins->add_hook('xmlhttp',                        'plotcp_register_alert_formatter');
 $plugins->add_hook('showthread_start',               'plotcp_handle_showthread');
+$plugins->add_hook('newthread_start',                'plotcp_handle_newthread');
+$plugins->add_hook('newthread_do_newthread_end',     'plotcp_handle_newthread_save');
 $plugins->add_hook('rpgcalendar_collect_events',     'plotcp_rpgcalendar_collect');
 $plugins->add_hook('class_moderation_delete_thread', 'plotcp_handle_thread_delete');
 $plugins->add_hook('admin_tools_menu',               'plotcp_admin_menu');
@@ -162,6 +164,55 @@ function plotcp_handle_showthread(): void
     plotcp_load_core();
     require_once MYBB_ROOT . 'inc/plugins/plotcp/core/frontend.php';
     $plotcp_scene_box = Plotcp_Frontend::buildSceneBox();
+}
+
+/**
+ * Plot select in the new-thread form ({$plotcp_newthread_select} is injected
+ * into the newthread template on activation). Empty outside configured forums.
+ */
+function plotcp_handle_newthread(): void
+{
+    global $plotcp_newthread_select;
+
+    $plotcp_newthread_select = '';
+
+    plotcp_load_core();
+    require_once MYBB_ROOT . 'inc/plugins/plotcp/core/frontend.php';
+    $plotcp_newthread_select = Plotcp_Frontend::buildNewthreadSelect();
+}
+
+/**
+ * Saves the plot link chosen in the new-thread form. Runs after MyBB accepted
+ * and stored the thread (its own post-key check already passed), so only the
+ * plot-side validation is repeated here. Silently does nothing on invalid
+ * input – a failed link must never break thread creation.
+ */
+function plotcp_handle_newthread_save(): void
+{
+    global $mybb, $db, $tid, $fid;
+
+    $pid = (int)$mybb->get_input('plotcp_pid', MyBB::INPUT_INT);
+    if ($pid <= 0 || (int)$tid <= 0) {
+        return;
+    }
+
+    plotcp_load_core();
+
+    if (!Plotcp_Permissions::isSceneForum((int)$fid)) {
+        return;
+    }
+    $plot = Plotcp_Database::getPlot($pid);
+    if (!$plot) {
+        return;
+    }
+    if ((int)$plot['visible'] === 0 && !Plotcp_Permissions::isTeam($mybb->user)) {
+        return;
+    }
+
+    // INSERT IGNORE + UNIQUE(tid): a race or double submit stays a no-op
+    $db->write_query('INSERT IGNORE INTO ' . TABLE_PREFIX . 'plotcp_plot_threads
+        (pid, tid, uid, dateline)
+        VALUES (' . $pid . ', ' . (int)$tid . ', ' . (int)$mybb->user['uid'] . ', ' . TIME_NOW . ')');
 }
 
 /**

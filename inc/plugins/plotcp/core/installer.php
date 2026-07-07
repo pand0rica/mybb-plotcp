@@ -307,9 +307,10 @@ class Plotcp_Installer
     }
 
     /**
-     * Injects {$plotcp_scene_box} after {$pollbox} into the showthread template
-     * of every template set. Removal runs first so repeated activation never
-     * produces a second injection.
+     * Injects the two core-template variables: {$plotcp_scene_box} after
+     * {$pollbox} in showthread and {$plotcp_newthread_select} after
+     * {$posticons} in newthread. Removal runs first so repeated activation
+     * never produces a second injection.
      */
     public static function injectSceneBox(): void
     {
@@ -321,6 +322,11 @@ class Plotcp_Installer
             '#' . preg_quote('{$pollbox}') . '#',
             "{\$pollbox}\n{\$plotcp_scene_box}"
         );
+        find_replace_templatesets(
+            'newthread',
+            '#' . preg_quote('{$posticons}') . '#',
+            "{\$posticons}\n{\$plotcp_newthread_select}"
+        );
     }
 
     public static function removeSceneBoxInjection(): void
@@ -330,6 +336,12 @@ class Plotcp_Installer
         find_replace_templatesets(
             'showthread',
             '#' . preg_quote("\n{\$plotcp_scene_box}") . '#',
+            '',
+            0
+        );
+        find_replace_templatesets(
+            'newthread',
+            '#' . preg_quote("\n{\$plotcp_newthread_select}") . '#',
             '',
             0
         );

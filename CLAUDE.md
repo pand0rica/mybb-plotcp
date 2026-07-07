@@ -16,8 +16,10 @@ Class/core split (like rpgcalendar/Blacklist):
   alert type codes)
 - `inc/plugins/plotcp/core/installer.php` – `Plotcp_Installer`: tables,
   settings (idempotent upgrade path), templates from `.tpl` files, stylesheet
-  in all themes, alert types, showthread injection (`{$plotcp_scene_box}`
-  after `{$pollbox}`; removal runs before injection → idempotent)
+  in all themes, alert types, two reversible core-template injections
+  (`{$plotcp_scene_box}` after `{$pollbox}` in showthread,
+  `{$plotcp_newthread_select}` after `{$posticons}` in newthread; removal runs
+  before injection → idempotent)
 - `inc/plugins/plotcp/core/database.php` – `Plotcp_Database`: all CRUD,
   calendar math + date validation, group diff (`setPlotGroups`), alert
   recipient queries (group members, team, main accounts)

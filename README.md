@@ -115,13 +115,18 @@ submissions.
 
 ### Linking scenes (inplay)
 
-In every thread inside the configured inplay/archive forums, the thread
-starter and the team see a **Plot** box below the first post:
+There are two ways to link a scene to a plot in the configured inplay/archive
+forums:
 
-- Select a plot and click **Link** – the scene now shows its plot, and the
-  plot page lists the scene.
-- **Unlink** removes the connection. A thread can belong to one plot at a
-  time.
+- **When creating the thread:** the new-thread form shows a **Plot** dropdown
+  (below the post icons). Pick a plot right away and it is linked as soon as
+  the scene is posted.
+- **In an existing thread:** the thread starter and the team see a **Plot**
+  box below the first post. Select a plot and click **Link**, or **Unlink** to
+  remove the connection.
+
+A thread can belong to one plot at a time. Published plots are selectable for
+everyone; the team can additionally pick preview plots.
 
 ![Scene box](docs/screenshots/scene-box.png)
 
