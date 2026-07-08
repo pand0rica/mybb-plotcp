@@ -4,6 +4,38 @@
     margin-bottom: 16px;
 }
 
+/* Category tab bar – hidden until the switching script reveals it, so without
+   JavaScript every category simply stays stacked (graceful fallback). */
+.plotcp_tabs {
+    display: none;
+    margin-bottom: 14px;
+    border-bottom: 2px solid #4f6f9f;
+}
+
+.plotcp_tab {
+    display: inline-block;
+    padding: 7px 15px;
+    margin: 0 3px -1px 0;
+    cursor: pointer;
+    background: #dce6f2;
+    border: 1px solid #9db8d2;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    text-decoration: none;
+    color: #26537c;
+}
+
+.plotcp_tab:hover {
+    background: #e9f0f8;
+}
+
+.plotcp_tab.active {
+    background: #4f6f9f;
+    border-color: #4f6f9f;
+    color: #fff;
+    font-weight: bold;
+}
+
 .plotcp_plot_row td {
     vertical-align: top;
 }

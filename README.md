@@ -8,7 +8,8 @@ inplay threads and automatic RPG Calendar integration.
 ## Features
 
 - **Plot categories** (e.g. Plots, User plots, Mini plots, Info, Rumours,
-  Blackboard) managed in the ACP, plots are listed grouped by category
+  Blackboard) managed in the ACP; on the frontend the categories become a tab
+  bar you switch between (stacked list as a no-JavaScript fallback)
 - **Plotting groups**: users join and leave groups themselves; every plot can
   be linked to any number of groups
 - **Preview / publish workflow**: new plots start as previews that only

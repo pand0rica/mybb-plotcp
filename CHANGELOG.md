@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - Plot categories managed in the ACP; frontend plot list grouped by category
   with an active/archive switch.
+- Frontend plot list groups categories into a tab bar (client-side switching,
+  no reload); without JavaScript the categories fall back to a stacked list.
 - Plotting groups with self-service join/leave on the frontend groups page.
 - Preview/publish workflow: plots start as previews visible to configured
   groups, the team and the submitter; publishing alerts all members of the

@@ -42,6 +42,10 @@ class Plotcp_Frontend
         }
         $group_names = self::groupNamesForPlots($pids);
 
+        // One tab per category that has plots; each section is wrapped in a
+        // div the tab bar switches between (client-side, JS in the template).
+        // Without JS the tab bar stays hidden and all sections show stacked.
+        $category_tabs     = '';
         $category_sections = '';
         foreach (Plotcp_Database::getCategories() as $cid => $category) {
             if (empty($plots_by_cid[$cid])) {
@@ -62,15 +66,25 @@ class Plotcp_Frontend
                 $altbg = $altbg === 'trow1' ? 'trow2' : 'trow1';
             }
 
+            $section_id           = 'plotcp_cat_' . (int)$cid;
             $category_name        = htmlspecialchars_uni((string)$category['name']);
             $category_description = $category['description'] !== ''
                 ? ' <span class="smalltext">&ndash; ' . htmlspecialchars_uni((string)$category['description']) . '</span>'
                 : '';
-            eval('$category_sections .= "' . $templates->get('plotcp_index_category') . '";');
+
+            $category_tabs .= '<a href="#' . $section_id . '" class="plotcp_tab" data-target="'
+                . $section_id . '">' . $category_name . '</a>';
+
+            $section_html = '';
+            eval('$section_html = "' . $templates->get('plotcp_index_category') . '";');
+            $category_sections .= '<div class="plotcp_cat_section" id="' . $section_id . '">'
+                . $section_html . '</div>';
         }
 
         if ($category_sections === '') {
             eval('$category_sections = "' . $templates->get('plotcp_index_empty') . '";');
+        } elseif ($category_tabs !== '') {
+            $category_tabs = '<div class="plotcp_tabs">' . $category_tabs . '</div>';
         }
 
         // mode switch + toolbar links
