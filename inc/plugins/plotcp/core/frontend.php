@@ -44,9 +44,12 @@ class Plotcp_Frontend
 
         // One tab per category that has plots; each section is wrapped in a
         // div the tab bar switches between (client-side, JS in the template).
-        // Without JS the tab bar stays hidden and all sections show stacked.
-        $category_tabs     = '';
+        // The tabs are a native MyBB header strip: thead = active tab,
+        // tcat = inactive – colours come from the theme. Without JS the tabs
+        // are plain anchor jump links and every section stays visible (stacked).
+        $tab_cells         = '';
         $category_sections = '';
+        $first             = true;
         foreach (Plotcp_Database::getCategories() as $cid => $category) {
             if (empty($plots_by_cid[$cid])) {
                 continue;
@@ -72,8 +75,10 @@ class Plotcp_Frontend
                 ? ' <span class="smalltext">&ndash; ' . htmlspecialchars_uni((string)$category['description']) . '</span>'
                 : '';
 
-            $category_tabs .= '<a href="#' . $section_id . '" class="plotcp_tab" data-target="'
-                . $section_id . '">' . $category_name . '</a>';
+            $cell_class = ($first ? 'thead' : 'tcat') . ' plotcp_tab';
+            $tab_cells .= '<td class="' . $cell_class . '" data-target="' . $section_id . '">'
+                . '<a href="#' . $section_id . '">' . $category_name . '</a></td>';
+            $first = false;
 
             $section_html = '';
             eval('$section_html = "' . $templates->get('plotcp_index_category') . '";');
@@ -81,10 +86,13 @@ class Plotcp_Frontend
                 . $section_html . '</div>';
         }
 
+        $category_tabs = '';
         if ($category_sections === '') {
             eval('$category_sections = "' . $templates->get('plotcp_index_empty') . '";');
-        } elseif ($category_tabs !== '') {
-            $category_tabs = '<div class="plotcp_tabs">' . $category_tabs . '</div>';
+        } elseif ($tab_cells !== '') {
+            $category_tabs = '<table border="0" cellspacing="' . (int)$theme['borderwidth']
+                . '" cellpadding="' . (int)$theme['tablespace'] . '" class="tborder plotcp_tabs"><tr>'
+                . $tab_cells . '<td class="tcat" width="100%">&nbsp;</td></tr></table>';
         }
 
         // mode switch + toolbar links

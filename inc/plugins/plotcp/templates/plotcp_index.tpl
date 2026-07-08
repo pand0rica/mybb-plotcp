@@ -25,10 +25,10 @@
 			secs[i].style.display = (secs[i].id === id) ? '' : 'none';
 		}
 		for (i = 0; i < tabs.length; i++) {
-			tabs[i].className = (tabs[i].getAttribute('data-target') === id) ? 'plotcp_tab active' : 'plotcp_tab';
+			var on = tabs[i].getAttribute('data-target') === id;
+			tabs[i].className = (on ? 'thead' : 'tcat') + ' plotcp_tab' + (on ? ' active' : '');
 		}
 	}
-	tabs[0].parentNode.style.display = 'block';
 	for (var i = 0; i < tabs.length; i++) {
 		tabs[i].onclick = function(e) {
 			if (e && e.preventDefault) { e.preventDefault(); }
