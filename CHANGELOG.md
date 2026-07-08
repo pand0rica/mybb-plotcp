@@ -29,6 +29,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Forum listing: threads linked to a plot show the plot name in square
   brackets before the thread title (`[Plot] Subject`). Preview-plot names are
   only shown to users who may see the preview.
+- Preview access from the ACP: the plot title in the ACP list links to the
+  rendered frontend plot page (and a "View preview" option opens it in a new
+  tab), so the team can check how a plot will look before publishing.
+- Plot descriptions support MyCode/BBCode **and** raw HTML (deliberate forum
+  choice, applies to team and user submissions alike).
 - Optional IC date range per plot: proleptic Gregorian calendar, astronomical
   year numbering (year 0 exists, negative years allowed), `start_key`/
   `end_key` sort keys computed in PHP.
@@ -44,6 +49,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - All state-changing actions are POST-only with `verify_post_check()`.
 - Alert extra details are stored raw and escaped in the formatter
   (`htmlspecialchars_uni()`) to prevent stored XSS in the alert dropdown.
-- Plot descriptions are parsed with MyCode only (`allow_html = 0`).
 - Preview plots are hidden everywhere for unauthorized users: list, detail
-  page, scene box, scene link dropdown and calendar provider.
+  page, scene box, scene link dropdown, calendar provider and the forum-listing
+  plot prefix.
+- Plot titles, locations, contact links, group names and alert contents are
+  escaped on output. NOTE: plot **descriptions** intentionally allow raw HTML
+  (`allow_html = 1`, forum owner's decision) – descriptions are trusted content
+  by design; keep this in mind if the trust model of submissions changes.

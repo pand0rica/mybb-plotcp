@@ -33,6 +33,7 @@ $l['plotcp_admin_filter_archived'] = 'Archived';
 
 // Controls
 $l['plotcp_admin_edit'] = 'Edit';
+$l['plotcp_admin_preview'] = 'View preview';
 $l['plotcp_admin_cancel'] = 'Cancel';
 $l['plotcp_admin_options'] = 'Options';
 $l['plotcp_admin_delete'] = 'Delete';

@@ -80,8 +80,13 @@ No other dependencies.
 
 - **Create:** ACP → Tools → Plot Control Panel → tab **Add plot**. Fill in
   name, category, plotting groups, location, contact persons (usernames,
-  comma-separated), description (MyCode supported) and the optional IC date
-  range. The plot is saved as a **preview**.
+  comma-separated), description (MyCode/BBCode **and** HTML supported) and the
+  optional IC date range. The plot is saved as a **preview**.
+- **Preview:** in the ACP plot list the plot title links to the rendered
+  frontend page (opens in a new tab), and the options menu has a **View
+  preview** entry – so you can check exactly how the plot will look, with all
+  formatting, before publishing. Users who submit a plot are taken straight to
+  its preview page after submitting.
 - **Publish:** in the plot list open the options menu → **Publish** (or use
   the publish button on the plot's frontend page). All members of the linked
   plotting groups receive a MyAlerts notification.

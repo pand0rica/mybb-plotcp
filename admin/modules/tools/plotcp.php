@@ -291,13 +291,18 @@ function plotcp_acp_plot_list(): void
         $cid      = (int)$plot['cid'];
         $category = isset($categories[$cid]) ? $categories[$cid]['name'] : '–';
 
-        $table->construct_cell(htmlspecialchars_uni((string)$plot['title']));
+        $preview_url = $mybb->settings['bburl'] . '/plotcp.php?action=view&amp;pid=' . $pid;
+        $table->construct_cell('<a href="' . htmlspecialchars_uni($preview_url)
+            . '" target="_blank" rel="noopener" title="' . htmlspecialchars_uni($lang->plotcp_admin_preview) . '">'
+            . htmlspecialchars_uni((string)$plot['title']) . '</a>');
         $table->construct_cell(htmlspecialchars_uni((string)$category));
         $table->construct_cell($status, ['class' => 'align_center']);
         $table->construct_cell(isset($group_counts[$pid]) ? $group_counts[$pid] : 0, ['class' => 'align_center']);
         $table->construct_cell(plotcp_acp_format_date($plot));
 
         $popup = new PopupMenu('plot_' . $pid, $lang->plotcp_admin_options);
+        $popup->add_item($lang->plotcp_admin_preview,
+            "javascript:window.open('" . $mybb->settings['bburl'] . "/plotcp.php?action=view&pid=" . $pid . "');");
         $popup->add_item($lang->plotcp_admin_edit, $base_url . '&amp;action=edit&amp;pid=' . $pid);
         if ((int)$plot['visible'] === 0) {
             $popup->add_item($lang->plotcp_admin_publish,

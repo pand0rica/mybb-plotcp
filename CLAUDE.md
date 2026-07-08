@@ -68,6 +68,14 @@ one plot per thread).
 - Extra details raw in DB, escaping ONLY in the formatter. Calendar titles
   raw too (rpgcalendar escapes on render).
 
+## Description formatting
+
+Plot descriptions are rendered with `postParser` using `allow_html = 1` AND
+`allow_mycode = 1` (`Plotcp_Frontend::parseDescription`). This is a deliberate
+decision by the forum owner (raw HTML allowed, incl. user submissions). If the
+submission trust model ever tightens, gate HTML per author here. Everything
+else (titles, locations, group names, contacts, alert values) stays escaped.
+
 ## Calendar conventions
 
 Identical to rpgcalendar: proleptic Gregorian, astronomical year numbering

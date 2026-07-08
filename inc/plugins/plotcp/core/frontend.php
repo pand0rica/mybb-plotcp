@@ -465,8 +465,11 @@ class Plotcp_Frontend
             $parser = new postParser();
         }
 
+        // allow_html = 1 is a deliberate choice by the forum admin: plot
+        // descriptions may contain raw HTML (including user submissions). See
+        // CLAUDE.md / README security note.
         return $parser->parse_message($text, [
-            'allow_html'      => 0,
+            'allow_html'      => 1,
             'allow_mycode'    => 1,
             'allow_smilies'   => 1,
             'allow_imgcode'   => 1,
