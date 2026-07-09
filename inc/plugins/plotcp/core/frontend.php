@@ -15,87 +15,122 @@ if (!defined('IN_MYBB')) {
 class Plotcp_Frontend
 {
     /* ---------------------------------------------------------------------
-     * Plot list (grouped by category, active/archive switch)
+     * Browse view: category tabs on top, plot navigation (grouped by inplay
+     * year, newest first) on the left, selected plot detail on the right.
      * ------------------------------------------------------------------ */
 
-    public static function renderList(string $mode): string
+    public static function renderBrowse(string $mode, int $cat, int $pid): string
     {
         global $mybb, $db, $lang, $templates, $theme, $header, $headerinclude, $footer;
 
-        $archived = $mode === 'archive' ? 1 : 0;
+        $archived  = $mode === 'archive' ? 1 : 0;
+        $mode_key  = $archived ? 'archive' : 'active';
+        $condition = 'archived = ' . $archived . ' AND ' . self::visibilityCondition();
 
-        // previews: team/preview groups see all, users see their own submissions
-        $where = 'archived = ' . $archived;
-        if (!Plotcp_Permissions::canViewAnyPreview($mybb->user)) {
-            $uid = (int)$mybb->user['uid'];
-            $where .= $uid > 0
-                ? ' AND (visible = 1 OR submitted_uid = ' . $uid . ')'
-                : ' AND visible = 1';
+        $categories = Plotcp_Database::getCategories();
+
+        // plot count per category in this mode/visibility → which tabs to show
+        $counts = [];
+        $q = $db->query('SELECT cid, COUNT(*) AS num FROM ' . TABLE_PREFIX . 'plotcp_plots
+            WHERE ' . $condition . ' GROUP BY cid');
+        while ($row = $db->fetch_array($q)) {
+            $counts[(int)$row['cid']] = (int)$row['num'];
         }
 
-        $plots_by_cid = [];
-        $pids = [];
-        $query = $db->simple_select('plotcp_plots', '*', $where, ['order_by' => 'title']);
-        while ($plot = $db->fetch_array($query)) {
-            $plots_by_cid[(int)$plot['cid']][] = $plot;
-            $pids[] = (int)$plot['pid'];
+        // active category: requested one if it has plots, else first with plots
+        $active_cat = 0;
+        if ($cat > 0 && !empty($counts[$cat])) {
+            $active_cat = $cat;
+        } else {
+            foreach ($categories as $cid => $category) {
+                if (!empty($counts[$cid])) {
+                    $active_cat = (int)$cid;
+                    break;
+                }
+            }
         }
-        $group_names = self::groupNamesForPlots($pids);
 
-        // One tab per category that has plots; each section is wrapped in a
-        // div the tab bar switches between (client-side, JS in the template).
-        // The tabs are a native MyBB header strip: thead = active tab,
-        // tcat = inactive – colours come from the theme. Without JS the tabs
-        // are plain anchor jump links and every section stays visible (stacked).
-        $tab_cells         = '';
-        $category_sections = '';
-        $first             = true;
-        foreach (Plotcp_Database::getCategories() as $cid => $category) {
-            if (empty($plots_by_cid[$cid])) {
+        $base = 'plotcp.php?mode=' . $mode_key;
+
+        // category tab bar (server-side links, thead = active, tcat = rest)
+        $tab_cells = '';
+        foreach ($categories as $cid => $category) {
+            if (empty($counts[$cid])) {
                 continue;
             }
-
-            $plot_rows = '';
-            $altbg = 'trow1';
-            foreach ($plots_by_cid[$cid] as $plot) {
-                $pid = (int)$plot['pid'];
-                $plot_id       = $pid;
-                $plot_title    = htmlspecialchars_uni((string)$plot['title']);
-                $plot_badges   = self::badges($plot);
-                $plot_groups   = self::groupBadges(isset($group_names[$pid]) ? $group_names[$pid] : []);
-                $plot_location = $plot['location'] !== '' ? htmlspecialchars_uni((string)$plot['location']) : '&ndash;';
-                $plot_date     = self::formatDateRange($plot);
-                eval('$plot_rows .= "' . $templates->get('plotcp_index_plot_bit') . '";');
-                $altbg = $altbg === 'trow1' ? 'trow2' : 'trow1';
-            }
-
-            $section_id           = 'plotcp_cat_' . (int)$cid;
-            $category_name        = htmlspecialchars_uni((string)$category['name']);
-            $category_description = $category['description'] !== ''
-                ? ' <span class="smalltext">&ndash; ' . htmlspecialchars_uni((string)$category['description']) . '</span>'
-                : '';
-
-            $cell_class = ($first ? 'thead' : 'tcat') . ' plotcp_tab';
-            $tab_cells .= '<td class="' . $cell_class . '" data-target="' . $section_id . '">'
-                . '<a href="#' . $section_id . '">' . $category_name . '</a></td>';
-            $first = false;
-
-            $section_html = '';
-            eval('$section_html = "' . $templates->get('plotcp_index_category') . '";');
-            $category_sections .= '<div class="plotcp_cat_section" id="' . $section_id . '">'
-                . $section_html . '</div>';
+            $cls = ((int)$cid === $active_cat ? 'thead' : 'tcat') . ' plotcp_tab';
+            $tab_cells .= '<td class="' . $cls . '"><a href="' . $base . '&amp;cat=' . (int)$cid . '">'
+                . htmlspecialchars_uni((string)$category['name']) . '</a></td>';
         }
-
         $category_tabs = '';
-        if ($category_sections === '') {
-            eval('$category_sections = "' . $templates->get('plotcp_index_empty') . '";');
-        } elseif ($tab_cells !== '') {
+        if ($tab_cells !== '') {
             $category_tabs = '<table border="0" cellspacing="' . (int)$theme['borderwidth']
                 . '" cellpadding="' . (int)$theme['tablespace'] . '" class="tborder plotcp_tabs"><tr>'
                 . $tab_cells . '<td class="tcat" width="100%">&nbsp;</td></tr></table>';
         }
 
-        // mode switch + toolbar links
+        // plots of the active category, newest inplay date first
+        $plots = [];
+        if ($active_cat > 0) {
+            $query = $db->simple_select('plotcp_plots', '*',
+                'cid = ' . $active_cat . ' AND ' . $condition,
+                ['order_by' => 'start_key DESC, title ASC']);
+            while ($row = $db->fetch_array($query)) {
+                $plots[] = $row;
+            }
+        }
+
+        // active plot: requested one if in this list, else the newest
+        $active_plot = null;
+        if ($pid > 0) {
+            foreach ($plots as $p) {
+                if ((int)$p['pid'] === $pid) {
+                    $active_plot = $p;
+                    break;
+                }
+            }
+        }
+        if ($active_plot === null && $plots) {
+            $active_plot = $plots[0];
+        }
+
+        // left navigation, grouped by inplay year (start_year), newest first
+        $nav = '';
+        if ($plots) {
+            $cat_name  = htmlspecialchars_uni((string)$categories[$active_cat]['name']);
+            $nav_rows  = '';
+            $altbg     = 'trow1';
+            $cur_year  = null;
+            $active_id = $active_plot ? (int)$active_plot['pid'] : 0;
+            foreach ($plots as $p) {
+                $year = (int)$p['start_year'];
+                if ($year !== $cur_year) {
+                    $nav_rows .= '<tr><td class="tcat"><span class="smalltext"><strong>'
+                        . $year . '</strong></span></td></tr>';
+                    $cur_year = $year;
+                    $altbg = 'trow1';
+                }
+                $rid   = (int)$p['pid'];
+                $cls   = $rid === $active_id ? 'trow_shaded' : $altbg;
+                $label = htmlspecialchars_uni((string)$p['title']) . self::badges($p);
+                $nav_rows .= '<tr><td class="' . $cls . '"><a href="' . $base . '&amp;cat='
+                    . $active_cat . '&amp;pid=' . $rid . '">' . $label . '</a></td></tr>';
+                $altbg = $altbg === 'trow1' ? 'trow2' : 'trow1';
+            }
+            eval('$nav = "' . $templates->get('plotcp_browse_nav') . '";');
+        }
+
+        // right detail pane
+        $detail = '';
+        if ($active_plot !== null) {
+            $detail = self::renderDetail($active_plot);
+        } else {
+            $detail = '<table border="0" cellspacing="' . (int)$theme['borderwidth']
+                . '" cellpadding="' . (int)$theme['tablespace'] . '" class="tborder"><tr><td class="trow1">'
+                . htmlspecialchars_uni($lang->plotcp_no_plots) . '</td></tr></table>';
+        }
+
+        // mode switch + toolbar
         $active_label  = htmlspecialchars_uni($lang->plotcp_mode_active);
         $archive_label = htmlspecialchars_uni($lang->plotcp_mode_archive);
         $mode_switch = $archived === 0
@@ -112,18 +147,41 @@ class Plotcp_Frontend
         }
         $toolbar_buttons = implode(' &middot; ', $toolbar);
 
-        eval('$html = "' . $templates->get('plotcp_index') . '";');
+        if ($active_cat === 0) {
+            eval('$content = "' . $templates->get('plotcp_index_empty') . '";');
+        } else {
+            eval('$content = "' . $templates->get('plotcp_browse_body') . '";');
+        }
+
+        eval('$html = "' . $templates->get('plotcp_browse') . '";');
 
         return $html;
     }
 
-    /* ---------------------------------------------------------------------
-     * Plot detail page
-     * ------------------------------------------------------------------ */
-
-    public static function renderView(array $plot): string
+    /**
+     * SQL condition (no leading AND) limiting plots to what the current user
+     * may see: everyone sees published plots, preview-eligible users see all,
+     * logged-in users additionally see their own submissions.
+     */
+    private static function visibilityCondition(): string
     {
-        global $mybb, $db, $lang, $templates, $theme, $header, $headerinclude, $footer;
+        global $mybb;
+
+        if (Plotcp_Permissions::canViewAnyPreview($mybb->user)) {
+            return '1 = 1';
+        }
+        $uid = (int)$mybb->user['uid'];
+
+        return $uid > 0 ? '(visible = 1 OR submitted_uid = ' . $uid . ')' : 'visible = 1';
+    }
+
+    /**
+     * Renders the plot detail fragment (info table, team bar, linked scenes)
+     * for the right pane / the standalone view.
+     */
+    public static function renderDetail(array $plot): string
+    {
+        global $mybb, $db, $lang, $templates, $theme;
 
         $pid = (int)$plot['pid'];
 
@@ -195,9 +253,9 @@ class Plotcp_Frontend
                 . htmlspecialchars_uni($lang->plotcp_view_no_scenes) . '</td></tr>';
         }
 
-        eval('$html = "' . $templates->get('plotcp_view') . '";');
+        eval('$detail = "' . $templates->get('plotcp_detail') . '";');
 
-        return $html;
+        return $detail;
     }
 
     /* ---------------------------------------------------------------------
@@ -279,7 +337,6 @@ class Plotcp_Frontend
         }
 
         $form_title = $form_location = $form_contacts = $form_description = '';
-        $form_has_date = '';
         $form_start_day = $form_start_month = $form_start_year = '';
         $form_end_day = $form_end_month = $form_end_year = '';
 

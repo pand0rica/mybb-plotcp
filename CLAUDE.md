@@ -32,7 +32,12 @@ Class/core split (like rpgcalendar/Blacklist):
   only queues in `addAlert()` and flushes at end of web requests, never in CLI
 - `inc/plugins/plotcp/core/frontend.php` – `Plotcp_Frontend`: all frontend
   rendering incl. scene box; page skeletons in templates, small fragments
-  (badges, buttons, options) built in PHP with escaping
+  (badges, buttons, options) built in PHP with escaping. The main browse view
+  (`renderBrowse`) is a master-detail layout: server-side category tabs, left
+  plot nav grouped by `start_year` DESC + `start_key` DESC (newest first),
+  right pane = `renderDetail($plot)`. Both the default list and `action=view`
+  route through `renderBrowse`. Colours come from `thead`/`tcat`/`trow_shaded`
+  theme classes only – no own colours anywhere in the frontend CSS.
 - `inc/plugins/plotcp/myalerts_formatter.php` – one formatter per alert code;
   escapes EVERY extra-details value on render (extra details are stored raw)
 - `inc/plugins/plotcp/calendar_provider.php` – `rpgcalendar_collect_events`
@@ -81,7 +86,10 @@ else (titles, locations, group names, contacts, alert values) stays escaped.
 Identical to rpgcalendar: proleptic Gregorian, astronomical year numbering
 (year 0 exists, negative years allowed), NO mktime/DateTime anywhere. End
 date empty ⇒ end = start. Validation rejects (no silent clamping/swapping):
-incomplete start, partial end, invalid calendar dates, end < start.
+incomplete start, partial end, invalid calendar dates, end < start. The inplay
+date is REQUIRED (both forms always call `validateDates(true, …)`) because the
+browse navigation groups plots by year; `has_date` therefore is 1 for every
+new plot. The column stays for the calendar provider filter and legacy rows.
 
 ## What NOT to change
 

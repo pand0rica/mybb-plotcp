@@ -1,10 +1,3 @@
-<html>
-<head>
-<title>{$mybb->settings['bbname']} - {$plot_title}</title>
-{$headerinclude}
-</head>
-<body>
-{$header}
 <table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
 <tr>
 <td class="thead" colspan="2"><strong>{$plot_title}</strong> {$plot_badges}</td>
@@ -41,6 +34,3 @@
 </tr>
 {$scene_rows}
 </table>
-{$footer}
-</body>
-</html>

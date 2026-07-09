@@ -40,10 +40,9 @@
 <td class="trow1"><textarea id="plotcp_description" name="description" rows="10" cols="70">{$form_description}</textarea></td>
 </tr>
 <tr>
-<td class="trow2 plotcp_form_row"><label for="plotcp_has_date">{$lang->plotcp_field_date}</label><br /><span class="smalltext">{$lang->plotcp_field_date_desc}</span></td>
+<td class="trow2 plotcp_form_row"><label>{$lang->plotcp_field_date} <em>*</em></label><br /><span class="smalltext">{$lang->plotcp_field_date_desc}</span></td>
 <td class="trow2">
-<label><input type="checkbox" id="plotcp_has_date" name="has_date" value="1"{$form_has_date} /> {$lang->plotcp_field_date}</label>
-<div class="plotcp_date_inputs" style="margin-top: 6px;">
+<div class="plotcp_date_inputs">
 {$lang->plotcp_field_start}:
 <input type="text" class="textbox" name="start_day" value="{$form_start_day}" /> .
 <input type="text" class="textbox" name="start_month" value="{$form_start_month}" /> .

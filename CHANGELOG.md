@@ -9,11 +9,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - Plot categories managed in the ACP; frontend plot list grouped by category
   with an active/archive switch.
-- Frontend plot list groups categories into a tab bar (client-side switching,
-  no reload); without JavaScript the tabs act as anchor jump links and the
-  categories fall back to a stacked list. The tabs reuse the theme classes
-  `thead` (active) and `tcat` (inactive), so they adapt to every MyBB theme
-  with no own colours.
+- Frontend uses a master-detail browse view: category tab bar on top, a plot
+  navigation on the left grouped by inplay year (newest year and newest plot
+  first) and the selected plot on the right. Category tabs and plot selection
+  are server-side links (`?cat=…&pid=…`). Tabs and the active navigation entry
+  reuse the theme classes `thead`/`tcat`/`trow_shaded`, so everything adapts to
+  each MyBB theme with no own colours.
+- The inplay date is a required field (it drives the year navigation); the end
+  date stays optional (empty = single day).
 - Plotting groups with self-service join/leave on the frontend groups page.
 - Preview/publish workflow: plots start as previews visible to configured
   groups, the team and the submitter; publishing alerts all members of the

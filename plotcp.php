@@ -10,8 +10,8 @@
 define('IN_MYBB', 1);
 define('THIS_SCRIPT', 'plotcp.php');
 
-$templatelist = 'plotcp_index,plotcp_index_category,plotcp_index_plot_bit,plotcp_index_empty,'
-    . 'plotcp_view,plotcp_view_scene_bit,plotcp_view_teambar,plotcp_groups,plotcp_groups_bit,'
+$templatelist = 'plotcp_browse,plotcp_browse_body,plotcp_browse_nav,plotcp_detail,plotcp_index_empty,'
+    . 'plotcp_view_scene_bit,plotcp_view_teambar,plotcp_groups,plotcp_groups_bit,'
     . 'plotcp_groups_pending_bit,plotcp_groups_propose,plotcp_submit_form';
 
 require_once './global.php';
@@ -76,15 +76,13 @@ switch ($action) {
                 htmlspecialchars_uni(implode(', ', $contacts['unknown']))));
         }
 
-        $dates = Plotcp_Database::validateDates(
-            $mybb->get_input('has_date', MyBB::INPUT_INT) === 1,
-            [
-                'start_year' => $mybb->get_input('start_year'), 'start_month' => $mybb->get_input('start_month'),
-                'start_day'  => $mybb->get_input('start_day'),
-                'end_year'   => $mybb->get_input('end_year'),   'end_month'   => $mybb->get_input('end_month'),
-                'end_day'    => $mybb->get_input('end_day'),
-            ]
-        );
+        // The inplay date is mandatory (drives the year navigation).
+        $dates = Plotcp_Database::validateDates(true, [
+            'start_year' => $mybb->get_input('start_year'), 'start_month' => $mybb->get_input('start_month'),
+            'start_day'  => $mybb->get_input('start_day'),
+            'end_year'   => $mybb->get_input('end_year'),   'end_month'   => $mybb->get_input('end_month'),
+            'end_day'    => $mybb->get_input('end_day'),
+        ]);
         if (!$dates['ok']) {
             error($lang->{'plotcp_' . $dates['error']});
         }
@@ -242,7 +240,11 @@ switch ($action) {
         }
 
         add_breadcrumb(htmlspecialchars_uni((string)$plot['title']));
-        output_page(Plotcp_Frontend::renderView($plot));
+        output_page(Plotcp_Frontend::renderBrowse(
+            (int)$plot['archived'] === 1 ? 'archive' : 'active',
+            (int)$plot['cid'],
+            (int)$plot['pid']
+        ));
         break;
 
     case 'submit':
@@ -269,6 +271,10 @@ switch ($action) {
 
     default:
         $mode = $mybb->get_input('mode') === 'archive' ? 'archive' : 'active';
-        output_page(Plotcp_Frontend::renderList($mode));
+        output_page(Plotcp_Frontend::renderBrowse(
+            $mode,
+            (int)$mybb->get_input('cat', MyBB::INPUT_INT),
+            (int)$mybb->get_input('pid', MyBB::INPUT_INT)
+        ));
         break;
 }

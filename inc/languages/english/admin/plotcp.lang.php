@@ -57,8 +57,8 @@ $l['plotcp_field_location'] = 'Location';
 $l['plotcp_field_contacts'] = 'Contact persons';
 $l['plotcp_field_contacts_desc'] = 'Usernames, separated by commas.';
 $l['plotcp_field_description'] = 'Description';
-$l['plotcp_field_date'] = 'Plot has a date';
-$l['plotcp_field_date_desc'] = 'Optional IC date range (proleptic Gregorian, negative years allowed). Leave the end date empty for single-day plots.';
+$l['plotcp_field_date'] = 'Inplay date';
+$l['plotcp_field_date_desc'] = 'Required – determines the year grouping (proleptic Gregorian, negative years allowed). Leave the end date empty for single-day plots.';
 $l['plotcp_field_start'] = 'Start (day / month / year)';
 $l['plotcp_field_end'] = 'End (day / month / year)';
 

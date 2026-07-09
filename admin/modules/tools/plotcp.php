@@ -102,15 +102,13 @@ function plotcp_acp_save_plot(int $pid): void
         admin_redirect($back_url);
     }
 
-    $dates = Plotcp_Database::validateDates(
-        $mybb->get_input('has_date', MyBB::INPUT_INT) === 1,
-        [
-            'start_year' => $mybb->get_input('start_year'), 'start_month' => $mybb->get_input('start_month'),
-            'start_day'  => $mybb->get_input('start_day'),
-            'end_year'   => $mybb->get_input('end_year'),   'end_month'   => $mybb->get_input('end_month'),
-            'end_day'    => $mybb->get_input('end_day'),
-        ]
-    );
+    // The inplay date is mandatory (drives the year navigation).
+    $dates = Plotcp_Database::validateDates(true, [
+        'start_year' => $mybb->get_input('start_year'), 'start_month' => $mybb->get_input('start_month'),
+        'start_day'  => $mybb->get_input('start_day'),
+        'end_year'   => $mybb->get_input('end_year'),   'end_month'   => $mybb->get_input('end_month'),
+        'end_day'    => $mybb->get_input('end_day'),
+    ]);
     if (!$dates['ok']) {
         flash_message($lang->{'plotcp_' . $dates['error']}, 'error');
         admin_redirect($back_url);
@@ -428,10 +426,8 @@ function plotcp_acp_plot_form(int $pid): void
         $form->generate_text_area('description',
             (string)(isset($plot['description']) ? $plot['description'] : ''), ['rows' => 8]), 'description');
 
+    // Inplay date is mandatory. End date optional (empty = single day).
     $has_date = !empty($plot['has_date']);
-    $container->output_row($lang->plotcp_field_date, $lang->plotcp_field_date_desc,
-        $form->generate_check_box('has_date', 1, '', ['checked' => $has_date]), 'has_date');
-
     $date_inputs = function (string $prefix) use ($form, $plot, $has_date): string {
         $day   = $has_date ? (string)$plot[$prefix . '_day'] : '';
         $month = $has_date ? (string)$plot[$prefix . '_month'] : '';
@@ -446,7 +442,8 @@ function plotcp_acp_plot_form(int $pid): void
             . $form->generate_text_box($prefix . '_month', $month, ['style' => 'width:3em']) . ' . '
             . $form->generate_text_box($prefix . '_year', $year, ['style' => 'width:6em']);
     };
-    $container->output_row($lang->plotcp_field_start, '', $date_inputs('start'), 'start_day');
+    $container->output_row($lang->plotcp_field_start . ' <em>*</em>', $lang->plotcp_field_date_desc,
+        $date_inputs('start'), 'start_day');
     $container->output_row($lang->plotcp_field_end, '', $date_inputs('end'), 'end_day');
 
     $container->end();

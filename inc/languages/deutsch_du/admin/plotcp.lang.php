@@ -57,8 +57,8 @@ $l['plotcp_field_location'] = 'Ort';
 $l['plotcp_field_contacts'] = 'Ansprechpartner';
 $l['plotcp_field_contacts_desc'] = 'Benutzernamen, durch Kommas getrennt.';
 $l['plotcp_field_description'] = 'Beschreibung';
-$l['plotcp_field_date'] = 'Plot hat ein Datum';
-$l['plotcp_field_date_desc'] = 'Optionaler IC-Zeitraum (proleptisch gregorianisch, negative Jahre erlaubt). Lass das Enddatum leer für eintägige Plots.';
+$l['plotcp_field_date'] = 'Inplay-Datum';
+$l['plotcp_field_date_desc'] = 'Pflichtfeld – bestimmt die Einsortierung nach Jahr (proleptisch gregorianisch, negative Jahre erlaubt). Lass das Enddatum leer für eintägige Plots.';
 $l['plotcp_field_start'] = 'Beginn (Tag / Monat / Jahr)';
 $l['plotcp_field_end'] = 'Ende (Tag / Monat / Jahr)';
 

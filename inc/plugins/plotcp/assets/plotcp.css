@@ -22,6 +22,26 @@
     text-decoration: none;
 }
 
+.plotcp_toolbar {
+    margin-bottom: 10px;
+}
+
+/* Master-detail browse layout: fixed-width plot navigation on the left, plot
+   detail on the right. Structural only – colours come from the theme classes. */
+.plotcp_browse {
+    width: 100%;
+}
+
+.plotcp_browse_nav {
+    width: 230px;
+    vertical-align: top;
+    padding-right: 10px;
+}
+
+.plotcp_browse_detail {
+    vertical-align: top;
+}
+
 .plotcp_plot_row td {
     vertical-align: top;
 }

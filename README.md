@@ -8,8 +8,9 @@ inplay threads and automatic RPG Calendar integration.
 ## Features
 
 - **Plot categories** (e.g. Plots, User plots, Mini plots, Info, Rumours,
-  Blackboard) managed in the ACP; on the frontend the categories become a tab
-  bar you switch between (stacked list as a no-JavaScript fallback)
+  Blackboard) managed in the ACP; on the frontend each category is a tab, with
+  a plot navigation on the left (grouped by inplay year, newest first) and the
+  selected plot shown on the right
 - **Plotting groups**: users join and leave groups themselves; every plot can
   be linked to any number of groups
 - **Preview / publish workflow**: new plots start as previews that only
@@ -158,9 +159,10 @@ important-events table. Previews are never delivered to the calendar.
 
 ### Tips
 
-- **Date rules:** leave the end date empty for single-day plots. Negative
-  years are fine (astronomical numbering, year 0 exists). February 29 only
-  exists in leap years – the form tells you if a date is invalid.
+- **Date rules:** the inplay start date is required (it groups the plots by
+  year in the navigation). Leave the end date empty for single-day plots.
+  Negative years are fine (astronomical numbering, year 0 exists). February 29
+  only exists in leap years – the form tells you if a date is invalid.
 - **Deleting a category** is only possible while no plots use it.
 - **Deleting a group** removes its memberships and plot links; the plots
   themselves stay.
