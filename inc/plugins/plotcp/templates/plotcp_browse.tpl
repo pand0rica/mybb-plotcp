@@ -7,7 +7,7 @@
 {$header}
 <div class="plotcp_toolbar">
 	<div class="float_right">{$toolbar_buttons}</div>
-	{$mode_switch}
+	&nbsp;
 </div>
 <br class="clear" />
 {$category_tabs}

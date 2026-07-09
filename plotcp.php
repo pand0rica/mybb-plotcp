@@ -240,11 +240,7 @@ switch ($action) {
         }
 
         add_breadcrumb(htmlspecialchars_uni((string)$plot['title']));
-        output_page(Plotcp_Frontend::renderBrowse(
-            (int)$plot['archived'] === 1 ? 'archive' : 'active',
-            (int)$plot['cid'],
-            (int)$plot['pid']
-        ));
+        output_page(Plotcp_Frontend::renderBrowse((int)$plot['cid'], (int)$plot['pid']));
         break;
 
     case 'submit':
@@ -270,9 +266,7 @@ switch ($action) {
         break;
 
     default:
-        $mode = $mybb->get_input('mode') === 'archive' ? 'archive' : 'active';
         output_page(Plotcp_Frontend::renderBrowse(
-            $mode,
             (int)$mybb->get_input('cat', MyBB::INPUT_INT),
             (int)$mybb->get_input('pid', MyBB::INPUT_INT)
         ));

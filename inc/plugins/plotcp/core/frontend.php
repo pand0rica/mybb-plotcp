@@ -19,17 +19,17 @@ class Plotcp_Frontend
      * year, newest first) on the left, selected plot detail on the right.
      * ------------------------------------------------------------------ */
 
-    public static function renderBrowse(string $mode, int $cat, int $pid): string
+    public static function renderBrowse(int $cat, int $pid): string
     {
         global $mybb, $db, $lang, $templates, $theme, $header, $headerinclude, $footer;
 
-        $archived  = $mode === 'archive' ? 1 : 0;
-        $mode_key  = $archived ? 'archive' : 'active';
-        $condition = 'archived = ' . $archived . ' AND ' . self::visibilityCondition();
+        // No active/archive split: every plot (archived ones flagged only by
+        // their badge) is listed in its category.
+        $condition = self::visibilityCondition();
 
         $categories = Plotcp_Database::getCategories();
 
-        // plot count per category in this mode/visibility → which tabs to show
+        // plot count per category (visibility only) → which tabs to show
         $counts = [];
         $q = $db->query('SELECT cid, COUNT(*) AS num FROM ' . TABLE_PREFIX . 'plotcp_plots
             WHERE ' . $condition . ' GROUP BY cid');
@@ -50,8 +50,6 @@ class Plotcp_Frontend
             }
         }
 
-        $base = 'plotcp.php?mode=' . $mode_key;
-
         // category tab bar (server-side links, thead = active, tcat = rest)
         $tab_cells = '';
         foreach ($categories as $cid => $category) {
@@ -59,7 +57,7 @@ class Plotcp_Frontend
                 continue;
             }
             $cls = ((int)$cid === $active_cat ? 'thead' : 'tcat') . ' plotcp_tab';
-            $tab_cells .= '<td class="' . $cls . '"><a href="' . $base . '&amp;cat=' . (int)$cid . '">'
+            $tab_cells .= '<td class="' . $cls . '"><a href="plotcp.php?cat=' . (int)$cid . '">'
                 . htmlspecialchars_uni((string)$category['name']) . '</a></td>';
         }
         $category_tabs = '';
@@ -113,7 +111,7 @@ class Plotcp_Frontend
                 $rid   = (int)$p['pid'];
                 $cls   = $rid === $active_id ? 'trow_shaded' : $altbg;
                 $label = htmlspecialchars_uni((string)$p['title']) . self::badges($p);
-                $nav_rows .= '<tr><td class="' . $cls . '"><a href="' . $base . '&amp;cat='
+                $nav_rows .= '<tr><td class="' . $cls . '"><a href="plotcp.php?cat='
                     . $active_cat . '&amp;pid=' . $rid . '">' . $label . '</a></td></tr>';
                 $altbg = $altbg === 'trow1' ? 'trow2' : 'trow1';
             }
@@ -130,13 +128,7 @@ class Plotcp_Frontend
                 . htmlspecialchars_uni($lang->plotcp_no_plots) . '</td></tr></table>';
         }
 
-        // mode switch + toolbar
-        $active_label  = htmlspecialchars_uni($lang->plotcp_mode_active);
-        $archive_label = htmlspecialchars_uni($lang->plotcp_mode_archive);
-        $mode_switch = $archived === 0
-            ? '<strong>' . $active_label . '</strong> | <a href="plotcp.php?mode=archive">' . $archive_label . '</a>'
-            : '<a href="plotcp.php">' . $active_label . '</a> | <strong>' . $archive_label . '</strong>';
-
+        // toolbar (submit / groups)
         $toolbar = ['<a href="plotcp.php?action=groups">' . htmlspecialchars_uni($lang->plotcp_btn_groups) . '</a>'];
         if ((int)$mybb->user['uid'] > 0
             && isset($mybb->settings['plotcp_allow_plot_submissions'])

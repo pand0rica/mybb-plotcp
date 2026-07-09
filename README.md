@@ -22,7 +22,8 @@ inplay threads and automatic RPG Calendar integration.
 - **Scene linking**: in configured inplay/archive forums, the thread starter
   and the team can link a thread to a plot; the plot page lists all linked
   scenes
-- **Archive**: plots can be moved to a manual archive with its own list view
+- **Archive**: plots can be marked as archived (shown with an "archived"
+  badge); they stay listed in their category, there is no separate archive view
 - **Optional IC date range** per plot with arbitrary years (negative years
   and year 0 included, proleptic Gregorian calendar) – dated plots appear
   automatically in the [RPG Calendar](https://github.com/pand0rica/rpgcalendar)
@@ -94,8 +95,9 @@ No other dependencies.
   plotting groups receive a MyAlerts notification.
 - **Edit:** if you add another plotting group to an already published plot,
   only the members of the new group are notified – nobody gets a second alert.
-- **Archive:** options menu → **Archive** moves the plot to the archive view.
-  Dated plots stay visible in the RPG Calendar (they are history, after all).
+- **Archive:** options menu → **Archive** marks the plot as archived. It keeps
+  showing in its category on the frontend, just with an "archived" badge; it
+  also stays visible in the RPG Calendar (it is history, after all).
 
 ![ACP plot list](docs/screenshots/acp-plots.png)
 
