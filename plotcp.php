@@ -2,7 +2,7 @@
 /**
  * plotcp – frontend entry point.
  *
- * Views: plot list (grouped by category, active/archive), plot detail with
+ * Views: plot browse (category tabs, plot nav by year, detail), plot detail with
  * linked scenes, groups page (join/leave, propose), plot submission form.
  * Every state-changing action requires POST + verify_post_check().
  */
@@ -36,7 +36,7 @@ $action = $mybb->get_input('action');
  * ---------------------------------------------------------------------- */
 
 $post_actions = ['do_submit', 'submit_group', 'join_group', 'leave_group',
-                 'publish', 'archive', 'unarchive', 'link_thread', 'unlink_thread'];
+                 'publish', 'link_thread', 'unlink_thread'];
 
 if (in_array($action, $post_actions, true)) {
     if ($mybb->request_method !== 'post') {
@@ -94,7 +94,6 @@ switch ($action) {
             'contacts'         => $db->escape_string(implode(',', $contacts['uids'])),
             'description'      => $db->escape_string((string)$mybb->get_input('description')),
             'visible'          => 0,
-            'archived'         => 0,
             'submitted_uid'    => (int)$mybb->user['uid'],
             'created_dateline' => TIME_NOW,
         ], $dates['fields']));
@@ -155,10 +154,8 @@ switch ($action) {
         }
         break;
 
-    /* ---- publish / archive (team) --------------------------------------- */
+    /* ---- publish (team) -------------------------------------------------- */
     case 'publish':
-    case 'archive':
-    case 'unarchive':
         if (!Plotcp_Permissions::isTeam($mybb->user)) {
             error_no_permission();
         }
@@ -168,22 +165,13 @@ switch ($action) {
         if (!$plot) {
             error($lang->plotcp_error_invalid_plot);
         }
-
-        if ($action === 'publish') {
-            if ((int)$plot['visible'] === 1) {
-                error($lang->plotcp_error_already_published);
-            }
-            $db->update_query('plotcp_plots',
-                ['visible' => 1, 'published_dateline' => TIME_NOW], 'pid = ' . $pid);
-            Plotcp_Alerts::sendPlotPublished($plot, Plotcp_Database::getPlotGids($pid));
-            redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_published);
-        } elseif ($action === 'archive') {
-            $db->update_query('plotcp_plots', ['archived' => 1], 'pid = ' . $pid);
-            redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_archived);
-        } else {
-            $db->update_query('plotcp_plots', ['archived' => 0], 'pid = ' . $pid);
-            redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_unarchived);
+        if ((int)$plot['visible'] === 1) {
+            error($lang->plotcp_error_already_published);
         }
+        $db->update_query('plotcp_plots',
+            ['visible' => 1, 'published_dateline' => TIME_NOW], 'pid = ' . $pid);
+        Plotcp_Alerts::sendPlotPublished($plot, Plotcp_Database::getPlotGids($pid));
+        redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_published);
         break;
 
     /* ---- scene linking --------------------------------------------------- */

@@ -57,6 +57,7 @@ function plotcp_is_installed(): bool
 function plotcp_activate(): void
 {
     require_once MYBB_ROOT . 'inc/plugins/plotcp/core/installer.php';
+    Plotcp_Installer::migrateSchema();
     Plotcp_Installer::installSettings();
     Plotcp_Installer::installTemplates();
     Plotcp_Installer::installStylesheet();

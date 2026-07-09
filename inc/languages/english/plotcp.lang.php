@@ -7,13 +7,10 @@ $l['plotcp'] = 'Plots';
 $l['plotcp_nav'] = 'Plot Control Panel';
 
 // List view
-$l['plotcp_mode_active'] = 'Active plots';
-$l['plotcp_mode_archive'] = 'Archive';
 $l['plotcp_btn_submit_plot'] = 'Submit a plot';
 $l['plotcp_btn_groups'] = 'Plotting groups';
 $l['plotcp_no_plots'] = 'There are no plots in this view yet.';
 $l['plotcp_badge_preview'] = 'Preview';
-$l['plotcp_badge_archived'] = 'Archived';
 $l['plotcp_col_plot'] = 'Plot';
 $l['plotcp_col_groups'] = 'Plotting groups';
 $l['plotcp_col_date'] = 'Date';
@@ -29,8 +26,6 @@ $l['plotcp_view_scenes'] = 'Linked scenes';
 $l['plotcp_view_no_scenes'] = 'No scenes have been linked to this plot yet.';
 $l['plotcp_view_no_groups'] = 'No plotting groups linked.';
 $l['plotcp_btn_publish'] = 'Publish plot';
-$l['plotcp_btn_archive'] = 'Move to archive';
-$l['plotcp_btn_unarchive'] = 'Restore from archive';
 $l['plotcp_submitted_by'] = 'Submitted by';
 
 // Groups page
@@ -75,8 +70,6 @@ $l['plotcp_btn_unlink'] = 'Unlink';
 
 // Success messages (redirects)
 $l['plotcp_published'] = 'The plot has been published. Group members are being notified.';
-$l['plotcp_archived'] = 'The plot has been moved to the archive.';
-$l['plotcp_unarchived'] = 'The plot has been restored from the archive.';
 $l['plotcp_joined'] = 'You joined the plotting group.';
 $l['plotcp_left'] = 'You left the plotting group.';
 $l['plotcp_plot_submitted'] = 'Thank you! Your plot has been submitted and is now waiting as a preview.';

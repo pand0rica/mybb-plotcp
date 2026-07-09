@@ -14,10 +14,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   first) and the selected plot on the right. Category tabs and plot selection
   are server-side links (`?cat=…&pid=…`). Tabs and the active navigation entry
   reuse the theme classes `thead`/`tcat`/`trow_shaded`, so everything adapts to
-  each MyBB theme with no own colours. There is no active/archive split on the
-  frontend – archived plots are listed in their category like any other, marked
-  only by the "archived" badge. (The ACP keeps its preview/active/archived
-  filter for team management.)
+  each MyBB theme with no own colours.
+- Plots are organised only as preview vs published; there is no plot archive
+  (no archive flag, badge, view or ACP filter). The ACP plot filter is
+  All / Previews / Published. (The separate inplay/archive *forum* setting for
+  the scene box is unrelated and stays.)
 - The inplay date is a required field (it drives the year navigation); the end
   date stays optional (empty = single day).
 - Plotting groups with self-service join/leave on the frontend groups page.

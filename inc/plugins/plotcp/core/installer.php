@@ -47,7 +47,6 @@ class Plotcp_Installer
             `contacts`           VARCHAR(500) NOT NULL DEFAULT '',
             `description`        TEXT NOT NULL,
             `visible`            TINYINT(1) NOT NULL DEFAULT 0,
-            `archived`           TINYINT(1) NOT NULL DEFAULT 0,
             `submitted_uid`      INT UNSIGNED NOT NULL DEFAULT 0,
             `created_dateline`   INT UNSIGNED NOT NULL DEFAULT 0,
             `published_dateline` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -97,6 +96,19 @@ class Plotcp_Installer
         ) ENGINE=InnoDB{$collation};");
     }
 
+    /**
+     * Schema migrations for existing installs (run on activate). Idempotent.
+     */
+    public static function migrateSchema(): void
+    {
+        global $db;
+
+        // v1.0.0: the plot archive feature was dropped – remove its column.
+        if ($db->field_exists('archived', 'plotcp_plots')) {
+            $db->drop_column('plotcp_plots', 'archived');
+        }
+    }
+
     public static function dropTables(): void
     {
         global $db;
@@ -123,7 +135,7 @@ class Plotcp_Installer
             ],
             'team_groups' => [
                 'Team groups',
-                'User groups that may publish/archive plots, approve group proposals and manage scene links on any thread. These groups also receive submission alerts.',
+                'User groups that may publish plots, approve group proposals and manage scene links on any thread. These groups also receive submission alerts.',
                 'groupselect', '',
             ],
             'inplay_forums' => [

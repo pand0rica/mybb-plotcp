@@ -39,7 +39,7 @@ class Plotcp_Permissions
         return (bool)array_intersect(self::userGroupIds($user), $allowed);
     }
 
-    /** Team members may publish/archive plots, approve groups and manage scene links. */
+    /** Team members may publish plots, approve groups and manage scene links. */
     public static function isTeam(array $user): bool
     {
         global $mybb;

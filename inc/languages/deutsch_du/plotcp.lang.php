@@ -7,13 +7,10 @@ $l['plotcp'] = 'Plots';
 $l['plotcp_nav'] = 'Plot Control Panel';
 
 // Listenansicht
-$l['plotcp_mode_active'] = 'Aktive Plots';
-$l['plotcp_mode_archive'] = 'Archiv';
 $l['plotcp_btn_submit_plot'] = 'Plot einreichen';
 $l['plotcp_btn_groups'] = 'Plottinggruppen';
 $l['plotcp_no_plots'] = 'In dieser Ansicht gibt es noch keine Plots.';
 $l['plotcp_badge_preview'] = 'Vorschau';
-$l['plotcp_badge_archived'] = 'Archiviert';
 $l['plotcp_col_plot'] = 'Plot';
 $l['plotcp_col_groups'] = 'Plottinggruppen';
 $l['plotcp_col_date'] = 'Datum';
@@ -29,8 +26,6 @@ $l['plotcp_view_scenes'] = 'Verknüpfte Szenen';
 $l['plotcp_view_no_scenes'] = 'Mit diesem Plot wurden noch keine Szenen verknüpft.';
 $l['plotcp_view_no_groups'] = 'Keine Plottinggruppen verknüpft.';
 $l['plotcp_btn_publish'] = 'Plot veröffentlichen';
-$l['plotcp_btn_archive'] = 'Ins Archiv verschieben';
-$l['plotcp_btn_unarchive'] = 'Aus dem Archiv holen';
 $l['plotcp_submitted_by'] = 'Eingereicht von';
 
 // Gruppen-Seite
@@ -75,8 +70,6 @@ $l['plotcp_btn_unlink'] = 'Lösen';
 
 // Erfolgsmeldungen (Redirects)
 $l['plotcp_published'] = 'Der Plot wurde veröffentlicht. Die Gruppen-Mitglieder werden benachrichtigt.';
-$l['plotcp_archived'] = 'Der Plot wurde ins Archiv verschoben.';
-$l['plotcp_unarchived'] = 'Der Plot wurde aus dem Archiv geholt.';
 $l['plotcp_joined'] = 'Du bist der Plottinggruppe beigetreten.';
 $l['plotcp_left'] = 'Du hast die Plottinggruppe verlassen.';
 $l['plotcp_plot_submitted'] = 'Danke! Dein Plot wurde eingereicht und wartet jetzt als Vorschau.';

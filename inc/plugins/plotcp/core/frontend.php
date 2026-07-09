@@ -206,7 +206,7 @@ class Plotcp_Frontend
 
         $plot_description = self::parseDescription((string)$plot['description']);
 
-        // team buttons (publish / archive)
+        // team button (publish)
         $teambar = '';
         if (Plotcp_Permissions::isTeam($mybb->user)) {
             $team_buttons = self::teamButtons($plot);
@@ -469,10 +469,6 @@ class Plotcp_Frontend
             $badges .= ' <span class="plotcp_badge plotcp_badge--preview">'
                 . htmlspecialchars_uni($lang->plotcp_badge_preview) . '</span>';
         }
-        if ((int)$plot['archived'] === 1) {
-            $badges .= ' <span class="plotcp_badge plotcp_badge--archived">'
-                . htmlspecialchars_uni($lang->plotcp_badge_archived) . '</span>';
-        }
 
         return $badges;
     }
@@ -571,12 +567,9 @@ class Plotcp_Frontend
         $pid = (int)$plot['pid'];
         $buttons = [];
 
+        // Only unpublished previews get a team action (publish).
         if ((int)$plot['visible'] === 0) {
             $buttons[] = ['publish', $lang->plotcp_btn_publish];
-        } elseif ((int)$plot['archived'] === 0) {
-            $buttons[] = ['archive', $lang->plotcp_btn_archive];
-        } else {
-            $buttons[] = ['unarchive', $lang->plotcp_btn_unarchive];
         }
 
         $html = '';

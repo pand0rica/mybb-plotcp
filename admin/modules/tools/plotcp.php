@@ -2,7 +2,7 @@
 /**
  * plotcp – ACP module (tools).
  *
- * Plot list with publish/archive/delete, plot add/edit form, category CRUD
+ * Plot list with publish/delete, plot add/edit form, category CRUD
  * and plotting group management including approval of user proposals.
  */
 
@@ -139,7 +139,6 @@ function plotcp_acp_save_plot(int $pid): void
         }
     } else {
         $data['visible']          = 0;
-        $data['archived']         = 0;
         $data['submitted_uid']    = (int)$mybb->user['uid'];
         $data['created_dateline'] = TIME_NOW;
         $pid = (int)$db->insert_query('plotcp_plots', $data);
@@ -151,10 +150,10 @@ function plotcp_acp_save_plot(int $pid): void
 }
 
 /* -------------------------------------------------------------------------
- * POST-only state changes (publish / archive / unarchive / delete)
+ * POST-only state changes (publish / delete)
  * ---------------------------------------------------------------------- */
 
-if (in_array($action, ['publish', 'archive', 'unarchive', 'delete'], true)) {
+if (in_array($action, ['publish', 'delete'], true)) {
     if ($mybb->request_method !== 'post') {
         admin_redirect('index.php?module=tools-plotcp');
     }
@@ -177,16 +176,6 @@ if (in_array($action, ['publish', 'archive', 'unarchive', 'delete'], true)) {
                 ['visible' => 1, 'published_dateline' => TIME_NOW], 'pid = ' . $pid);
             Plotcp_Alerts::sendPlotPublished($plot, Plotcp_Database::getPlotGids($pid));
             flash_message($lang->plotcp_admin_plot_published, 'success');
-            break;
-
-        case 'archive':
-            $db->update_query('plotcp_plots', ['archived' => 1], 'pid = ' . $pid);
-            flash_message($lang->plotcp_admin_plot_archived, 'success');
-            break;
-
-        case 'unarchive':
-            $db->update_query('plotcp_plots', ['archived' => 0], 'pid = ' . $pid);
-            flash_message($lang->plotcp_admin_plot_unarchived, 'success');
             break;
 
         case 'delete':
@@ -231,10 +220,8 @@ function plotcp_acp_plot_list(): void
     $where = '';
     if ($mode === 'preview') {
         $where = 'p.visible = 0';
-    } elseif ($mode === 'active') {
-        $where = 'p.visible = 1 AND p.archived = 0';
-    } elseif ($mode === 'archived') {
-        $where = 'p.archived = 1';
+    } elseif ($mode === 'published') {
+        $where = 'p.visible = 1';
     } else {
         $mode = 'all';
     }
@@ -244,10 +231,9 @@ function plotcp_acp_plot_list(): void
 
     // filter links
     $filters = [];
-    foreach (['all'      => $lang->plotcp_admin_filter_all,
-              'preview'  => $lang->plotcp_admin_filter_preview,
-              'active'   => $lang->plotcp_admin_filter_active,
-              'archived' => $lang->plotcp_admin_filter_archived] as $key => $label) {
+    foreach (['all'       => $lang->plotcp_admin_filter_all,
+              'preview'   => $lang->plotcp_admin_filter_preview,
+              'published' => $lang->plotcp_admin_filter_published] as $key => $label) {
         $url = $base_url . ($key === 'all' ? '' : '&amp;mode=' . $key);
         $filters[] = $mode === $key
             ? '<strong>' . htmlspecialchars_uni($label) . '</strong>'
@@ -274,17 +260,13 @@ function plotcp_acp_plot_list(): void
 
     $query = $db->query('SELECT p.* FROM ' . TABLE_PREFIX . 'plotcp_plots p'
         . ($where !== '' ? ' WHERE ' . $where : '')
-        . ' ORDER BY p.visible ASC, p.archived ASC, p.title ASC');
+        . ' ORDER BY p.visible ASC, p.title ASC');
     while ($plot = $db->fetch_array($query)) {
         $pid = (int)$plot['pid'];
 
-        if ((int)$plot['visible'] === 0) {
-            $status = $lang->plotcp_admin_status_preview;
-        } elseif ((int)$plot['archived'] === 1) {
-            $status = $lang->plotcp_admin_status_archived;
-        } else {
-            $status = $lang->plotcp_admin_status_published;
-        }
+        $status = (int)$plot['visible'] === 0
+            ? $lang->plotcp_admin_status_preview
+            : $lang->plotcp_admin_status_published;
 
         $cid      = (int)$plot['cid'];
         $category = isset($categories[$cid]) ? $categories[$cid]['name'] : '–';
@@ -305,19 +287,13 @@ function plotcp_acp_plot_list(): void
         if ((int)$plot['visible'] === 0) {
             $popup->add_item($lang->plotcp_admin_publish,
                 "javascript:document.getElementById('publish_{$pid}').submit();");
-        } elseif ((int)$plot['archived'] === 0) {
-            $popup->add_item($lang->plotcp_admin_archive,
-                "javascript:document.getElementById('archive_{$pid}').submit();");
-        } else {
-            $popup->add_item($lang->plotcp_admin_unarchive,
-                "javascript:document.getElementById('unarchive_{$pid}').submit();");
         }
         $popup->add_item($lang->plotcp_admin_delete,
             "javascript:document.getElementById('delete_{$pid}').submit();",
             "return confirm('" . addslashes($lang->plotcp_admin_plot_delete_confirm) . "');");
 
         $forms = '';
-        foreach (['publish', 'archive', 'unarchive', 'delete'] as $act) {
+        foreach (['publish', 'delete'] as $act) {
             $forms .= '<form id="' . $act . '_' . $pid . '" method="post" action="'
                 . htmlspecialchars_uni($base_url . '&action=' . $act) . '" style="display:none;">'
                 . '<input type="hidden" name="pid" value="' . $pid . '" />'

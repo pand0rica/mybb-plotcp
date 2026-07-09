@@ -5,9 +5,8 @@
  * Handler for the rpgcalendar_collect_events hook. Contract (see rpgcalendar
  * README): one indexed query per month render, titles RAW (the consumer
  * escapes on render), over-delivery outside the month is fine, malformed
- * entries are silently discarded by the consumer. Archived plots stay in the
- * calendar on purpose – they are historical events. Previews (visible = 0)
- * are never delivered.
+ * entries are silently discarded by the consumer. Previews (visible = 0) are
+ * never delivered.
  */
 
 if (!defined('IN_MYBB')) {

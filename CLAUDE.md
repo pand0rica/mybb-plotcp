@@ -41,8 +41,7 @@ Class/core split (like rpgcalendar/Blacklist):
 - `inc/plugins/plotcp/myalerts_formatter.php` – one formatter per alert code;
   escapes EVERY extra-details value on render (extra details are stored raw)
 - `inc/plugins/plotcp/calendar_provider.php` – `rpgcalendar_collect_events`
-  handler: one indexed query, titles raw, `visible = 1` only, archived plots
-  stay in the calendar on purpose
+  handler: one indexed query, titles raw, `visible = 1` only (published plots)
 - `forumdisplay_thread` hook (`plotcp_handle_forumdisplay_thread` in the main
   file) – prepends `[Plot] ` to `$thread['subject']` for linked threads. Runs
   before MyBB escapes the subject (line ~1092), so the plot title stays raw
@@ -55,8 +54,8 @@ Class/core split (like rpgcalendar/Blacklist):
 ## Tables
 
 `plotcp_categories`, `plotcp_groups` (`approved` 0 = pending proposal),
-`plotcp_plots` (`visible` 0 = preview; `archived` manual flag; date columns
-+ `start_key`/`end_key` = y*10000+m*100+d computed in PHP, index
+`plotcp_plots` (`visible` 0 = preview, 1 = published – no archive flag; date
+columns + `start_key`/`end_key` = y*10000+m*100+d computed in PHP, index
 `(end_key, start_key)`), `plotcp_plot_groups` (UNIQUE pid,gid),
 `plotcp_group_members` (UNIQUE gid,uid), `plotcp_plot_threads` (UNIQUE tid –
 one plot per thread).
