@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [1.1.0] – Unreleased
 
+### Fixed
+
+- ACP plot list: the plot title's preview link was double-encoded
+  (`&amp;amp;`), so clicking it opened `plotcp.php?action=view&amp;pid=…` and
+  showed "the requested plot does not exist". The URL now uses a plain `&` that
+  `htmlspecialchars_uni()` encodes exactly once.
+
 ### New
 
 - ModCP group review: plotting group proposals can now be approved, edited or

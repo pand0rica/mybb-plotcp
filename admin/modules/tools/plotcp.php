@@ -271,7 +271,8 @@ function plotcp_acp_plot_list(): void
         $cid      = (int)$plot['cid'];
         $category = isset($categories[$cid]) ? $categories[$cid]['name'] : '–';
 
-        $preview_url = $mybb->settings['bburl'] . '/plotcp.php?action=view&amp;pid=' . $pid;
+        // plain '&' here: htmlspecialchars_uni() below encodes it to &amp; once
+        $preview_url = $mybb->settings['bburl'] . '/plotcp.php?action=view&pid=' . $pid;
         $table->construct_cell('<a href="' . htmlspecialchars_uni($preview_url)
             . '" target="_blank" rel="noopener" title="' . htmlspecialchars_uni($lang->plotcp_admin_preview) . '">'
             . htmlspecialchars_uni((string)$plot['title']) . '</a>');
