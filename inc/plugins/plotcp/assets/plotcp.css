@@ -55,6 +55,16 @@
     vertical-align: top;
 }
 
+/* Active plot in the navigation: subtle, theme-neutral marker. A left accent
+   bar in the current text colour (works on light and dark themes) plus bold –
+   deliberately NOT the theme's trow_shaded, which reads as deleted/moderated.
+   inset box-shadow draws over the row background without replacing it and adds
+   no width, so rows stay aligned. */
+.plotcp_nav_active {
+    box-shadow: inset 3px 0 0 currentColor;
+    font-weight: bold;
+}
+
 .plotcp_badge {
     display: inline-block;
     padding: 1px 7px;

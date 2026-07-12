@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+- Browse navigation: the active plot was marked with the theme class
+  `trow_shaded`, which looks red/deleted in some themes. It now uses a subtle,
+  theme-neutral marker (a left accent bar in the current text colour plus bold)
+  on the normal row background.
 - ACP plot list: the plot title's preview link was double-encoded
   (`&amp;amp;`), so clicking it opened `plotcp.php?action=view&amp;pid=…` and
   showed "the requested plot does not exist". The URL now uses a plain `&` that

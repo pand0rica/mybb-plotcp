@@ -51,8 +51,10 @@ Class/core split (like rpgcalendar/Blacklist):
   (`renderBrowse`) is a master-detail layout: server-side category tabs, left
   plot nav grouped by `start_year` DESC + `start_key` DESC (newest first),
   right pane = `renderDetail($plot)`. Both the default list and `action=view`
-  route through `renderBrowse`. Colours come from `thead`/`tcat`/`trow_shaded`
-  theme classes only – no own colours anywhere in the frontend CSS. Categories
+  route through `renderBrowse`. Colours come from `thead`/`tcat` theme classes;
+  the active plot in the nav uses a neutral `currentColor` accent
+  (`plotcp_nav_active`, left bar + bold), NOT `trow_shaded` (which reads as
+  deleted/moderated in some themes). Categories
   are shown as tabs even without plots; a category's (long, TEXT) description is
   rendered between the tabs and the plot list. `renderDetail` lists linked
   scenes with their Logbook meta bar (participants/location/date/daytime/type,

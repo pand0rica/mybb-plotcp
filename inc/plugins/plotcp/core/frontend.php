@@ -126,7 +126,10 @@ class Plotcp_Frontend
                     $altbg = 'trow1';
                 }
                 $rid   = (int)$p['pid'];
-                $cls   = $rid === $active_id ? 'trow_shaded' : $altbg;
+                // keep the row's normal theme background; mark the active plot
+                // with a subtle, theme-neutral accent (plotcp_nav_active) instead
+                // of trow_shaded, which reads as "deleted/moderated" in some themes
+                $cls   = $rid === $active_id ? $altbg . ' plotcp_nav_active' : $altbg;
                 $label = htmlspecialchars_uni((string)$p['title']) . self::badges($p);
                 $nav_rows .= '<tr><td class="' . $cls . '"><a href="plotcp.php?cat='
                     . $active_cat . '&amp;pid=' . $rid . '">' . $label . '</a></td></tr>';
