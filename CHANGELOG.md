@@ -49,6 +49,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - New setting **Current inplay months** (`plotcp_current_inplay`): one or more
   `year-month` values, comma separated (e.g. `1487-3, 1487-4`), driving
   `{$plotcp_current_plots}`. Empty = variable disabled.
+- The stylesheet is now also attached to `index.php` (so
+  `{$plotcp_current_plots}` is styled on the board index). The attachment is
+  refreshed on re-activation for existing themes too.
 - Activation now injects two more template variables (`{$plotcp_group_notice}`
   into `index`, `{$plotcp_modcp_nav}` into `modcp_nav`); both are removed on
   deactivation. Re-activate the plugin after updating so the new injections,

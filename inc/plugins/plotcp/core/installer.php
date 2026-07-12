@@ -298,8 +298,10 @@ class Plotcp_Installer
     }
 
     /**
-     * Registers the plugin stylesheet in every theme, attached to plotcp.php
-     * and showthread.php (scene box).
+     * Registers the plugin stylesheet in every theme, attached to index.php
+     * (group notice + {$plotcp_current_plots}), plotcp.php and showthread.php
+     * (scene box). The attachment is refreshed on re-activation for existing
+     * rows too, so upgrades pick up newly attached scripts.
      */
     public static function installStylesheet(): void
     {
@@ -312,6 +314,7 @@ class Plotcp_Installer
             return;
         }
 
+        $attachedto = 'index.php|plotcp.php|showthread.php';
         $css = $db->escape_string((string)file_get_contents($css_path));
         $themes = $db->simple_select('themes', 'tid');
         while ($theme = $db->fetch_array($themes)) {
@@ -322,6 +325,7 @@ class Plotcp_Installer
             ));
             if ($existing) {
                 $db->update_query('themestylesheets', [
+                    'attachedto'   => $attachedto,
                     'stylesheet'   => $css,
                     'lastmodified' => TIME_NOW,
                 ], "sid = '" . (int)$existing['sid'] . "'", 1);
@@ -329,7 +333,7 @@ class Plotcp_Installer
                 $sid = $db->insert_query('themestylesheets', [
                     'name'         => 'plotcp.css',
                     'tid'          => $tid,
-                    'attachedto'   => 'plotcp.php|showthread.php',
+                    'attachedto'   => $attachedto,
                     'stylesheet'   => $css,
                     'lastmodified' => TIME_NOW,
                     'cachefile'    => 'plotcp.css',
