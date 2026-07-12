@@ -3,6 +3,50 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.1.0] – Unreleased
+
+### New
+
+- ModCP group review: plotting group proposals can now be approved, edited or
+  rejected directly in the Moderator CP (**ModCP → Plot Control Panel →
+  Plotting groups**), without ACP access. Access is limited to team groups
+  (setting **Team groups**) who are also moderators (`canmodcp`). Rejecting a
+  proposal deletes it.
+- Board index notice: while group proposals are waiting, team members see a
+  hint on the board index linking straight to the ModCP review page.
+- The team submission alert for a new group proposal now links to the ModCP
+  review page instead of the frontend groups list.
+- Group member list: on the frontend groups page a plotting group can be
+  clicked to show its members (with join date). Team members can remove a
+  member from a group directly there.
+- Linked scenes on a plot page now show each scene's details from the
+  [Logbook](https://github.com/pand0rica/logbook) plugin – participants,
+  location, in-play date, daytime and scene-type badge, in the same layout as
+  the logbook meta bar – instead of the forum name. Best effort: without the
+  Logbook plugin the scene simply shows its thread link.
+- Categories without plots are now shown as tabs on the frontend as well
+  (previously only categories that already had plots appeared).
+- Global template variable `{$plotcp_current_plots}`: published plots whose
+  in-play range overlaps the configured **Current inplay months** (new
+  setting). Renders from its own templates (`plotcp_current_plots`,
+  `plotcp_current_plot_bit`) so it can be styled, and can be placed in any
+  top-level template **or** inside a forum/category description (board index) by
+  writing the literal token `{$plotcp_current_plots}` there.
+
+### Changed
+
+- Category descriptions are now long text: the `description` column changed
+  from `VARCHAR(255)` to `TEXT` (migrated automatically on re-activation) and
+  the ACP field is a textarea. If a category has a description it is shown on
+  the frontend between the category tabs and the plot list.
+- New setting **Current inplay months** (`plotcp_current_inplay`): one or more
+  `year-month` values, comma separated (e.g. `1487-3, 1487-4`), driving
+  `{$plotcp_current_plots}`. Empty = variable disabled.
+- Activation now injects two more template variables (`{$plotcp_group_notice}`
+  into `index`, `{$plotcp_modcp_nav}` into `modcp_nav`); both are removed on
+  deactivation. Re-activate the plugin after updating so the new injections,
+  the new setting, the schema migration and the new templates are applied.
+
 ## [1.0.0] – 2026-07-07
 
 ### New

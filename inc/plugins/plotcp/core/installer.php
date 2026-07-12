@@ -14,6 +14,30 @@ if (!defined('IN_MYBB')) {
 
 class Plotcp_Installer
 {
+    /**
+     * Loads inc/adminfunctions_templates.php (find_replace_templatesets) once.
+     * The file has no include guard and, on symlinked vhosts (Plesk/netcup),
+     * require_once does not reliably deduplicate it because the resolved
+     * realpath differs between includes – calling it from several installer
+     * methods in one activation would redeclare the function. The
+     * function_exists() guard makes the include idempotent regardless.
+     */
+    private static function loadTemplateFunctions(): void
+    {
+        if (!function_exists('find_replace_templatesets')) {
+            require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
+        }
+    }
+
+    /** Same guarded load, plus inc/functions_themes.php (theme stylesheets). */
+    private static function loadThemeFunctions(): void
+    {
+        self::loadTemplateFunctions();
+        if (!function_exists('update_theme_stylesheet_list')) {
+            require_once MYBB_ADMIN_DIR . 'inc/functions_themes.php';
+        }
+    }
+
     public static function createTables(): void
     {
         global $db;
@@ -23,7 +47,7 @@ class Plotcp_Installer
         $db->query("CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "plotcp_categories` (
             `cid`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
             `name`          VARCHAR(120) NOT NULL DEFAULT '',
-            `description`   VARCHAR(255) NOT NULL DEFAULT '',
+            `description`   TEXT NOT NULL,
             `display_order` INT NOT NULL DEFAULT 0,
             PRIMARY KEY (`cid`)
         ) ENGINE=InnoDB{$collation};");
@@ -107,6 +131,15 @@ class Plotcp_Installer
         if ($db->field_exists('archived', 'plotcp_plots')) {
             $db->drop_column('plotcp_plots', 'archived');
         }
+
+        // v1.1.0: category descriptions became long text (were VARCHAR(255)).
+        $col = $db->fetch_array($db->query(
+            "SHOW COLUMNS FROM " . TABLE_PREFIX . "plotcp_categories LIKE 'description'"
+        ));
+        if ($col && stripos((string)$col['Type'], 'text') === false) {
+            $db->write_query("ALTER TABLE " . TABLE_PREFIX
+                . "plotcp_categories MODIFY `description` TEXT NOT NULL");
+        }
     }
 
     public static function dropTables(): void
@@ -157,6 +190,11 @@ class Plotcp_Installer
                 'Allow group proposals',
                 'Registered users may propose new plotting groups via the frontend form. Proposals require team approval.',
                 'onoff', '1',
+            ],
+            'current_inplay' => [
+                'Current inplay months',
+                'Drives the global template variable {$plotcp_current_plots} (published plots overlapping these months). Enter one or more inplay months as year-month, comma separated, e.g. 1487-3, 1487-4. Leave empty to disable the variable. The month texts of these months are provided separately by the rpgcalendar plugin.',
+                'text', '',
             ],
         ];
     }
@@ -267,8 +305,7 @@ class Plotcp_Installer
     {
         global $db;
 
-        require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
-        require_once MYBB_ADMIN_DIR . 'inc/functions_themes.php';
+        self::loadThemeFunctions();
 
         $css_path = MYBB_ROOT . 'inc/plugins/plotcp/assets/plotcp.css';
         if (!file_exists($css_path)) {
@@ -308,8 +345,7 @@ class Plotcp_Installer
     {
         global $db;
 
-        require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
-        require_once MYBB_ADMIN_DIR . 'inc/functions_themes.php';
+        self::loadThemeFunctions();
 
         $db->delete_query('themestylesheets', "name = 'plotcp.css'");
         $themes = $db->simple_select('themes', 'tid');
@@ -326,7 +362,7 @@ class Plotcp_Installer
      */
     public static function injectSceneBox(): void
     {
-        require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
+        self::loadTemplateFunctions();
 
         self::removeSceneBoxInjection();
         find_replace_templatesets(
@@ -343,7 +379,7 @@ class Plotcp_Installer
 
     public static function removeSceneBoxInjection(): void
     {
-        require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
+        self::loadTemplateFunctions();
 
         find_replace_templatesets(
             'showthread',
@@ -354,6 +390,67 @@ class Plotcp_Installer
         find_replace_templatesets(
             'newthread',
             '#' . preg_quote("\n{\$plotcp_newthread_select}") . '#',
+            '',
+            0
+        );
+    }
+
+    /**
+     * Injects {$plotcp_group_notice} after {$header} in the board index so team
+     * members see pending group proposals right on the front page. Removal runs
+     * first to keep repeated activation from stacking injections.
+     */
+    public static function injectIndexNotice(): void
+    {
+        self::loadTemplateFunctions();
+
+        self::removeIndexNoticeInjection();
+        find_replace_templatesets(
+            'index',
+            '#' . preg_quote('{$header}') . '#',
+            "{\$header}\n{\$plotcp_group_notice}"
+        );
+    }
+
+    public static function removeIndexNoticeInjection(): void
+    {
+        self::loadTemplateFunctions();
+
+        find_replace_templatesets(
+            'index',
+            '#' . preg_quote("\n{\$plotcp_group_notice}") . '#',
+            '',
+            0
+        );
+    }
+
+    /**
+     * Injects {$plotcp_modcp_nav} before the closing </table> of the ModCP
+     * navigation so the plot team gets a menu entry to the group review page.
+     * modcp_nav has a single tborder table, so the last (only) </table> is a
+     * stable anchor.
+     */
+    public static function injectModcpNav(): void
+    {
+        self::loadTemplateFunctions();
+
+        self::removeModcpNavInjection();
+        // Anchor on the final </table> only (negative lookahead) so themes with
+        // nested tables in modcp_nav still get exactly one injection.
+        find_replace_templatesets(
+            'modcp_nav',
+            '#</table>(?![\s\S]*</table>)#',
+            "{\$plotcp_modcp_nav}</table>"
+        );
+    }
+
+    public static function removeModcpNavInjection(): void
+    {
+        self::loadTemplateFunctions();
+
+        find_replace_templatesets(
+            'modcp_nav',
+            '#' . preg_quote('{$plotcp_modcp_nav}') . '#',
             '',
             0
         );

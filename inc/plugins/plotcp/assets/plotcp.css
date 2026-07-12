@@ -22,6 +22,15 @@
     text-decoration: none;
 }
 
+/* Active category description, sits between the tab bar and the plot list. */
+.plotcp_cat_desc {
+    margin-bottom: 12px;
+}
+
+.plotcp_cat_desc td {
+    line-height: 1.5;
+}
+
 .plotcp_toolbar {
     margin-bottom: 10px;
 }
@@ -81,6 +90,10 @@
     font-weight: bold;
 }
 
+.plotcp_group_members {
+    margin-top: 12px;
+}
+
 .plotcp_group_checkboxes {
     columns: 2;
     -webkit-columns: 2;
@@ -111,6 +124,19 @@
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+}
+
+/* Global template variable {$plotcp_current_plots}. Deliberately light defaults –
+   restyle freely in the .tpl templates or your theme. The plotcp stylesheet is only
+   attached to plotcp.php/showthread.php, so when you place the variable elsewhere
+   (header, index) add matching rules to your theme. */
+.plotcp_current_plot {
+    padding: 2px 0;
+}
+
+.plotcp_current_plot_date {
+    font-size: 0.9em;
+    color: #666;
 }
 
 .plotcp_inline_form {

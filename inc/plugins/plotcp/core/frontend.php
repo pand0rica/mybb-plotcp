@@ -37,9 +37,10 @@ class Plotcp_Frontend
             $counts[(int)$row['cid']] = (int)$row['num'];
         }
 
-        // active category: requested one if it has plots, else first with plots
+        // active category: requested one if it exists, else the first category
+        // with plots, else simply the first category (empty ones are reachable)
         $active_cat = 0;
-        if ($cat > 0 && !empty($counts[$cat])) {
+        if ($cat > 0 && isset($categories[$cat])) {
             $active_cat = $cat;
         } else {
             foreach ($categories as $cid => $category) {
@@ -48,14 +49,15 @@ class Plotcp_Frontend
                     break;
                 }
             }
+            if ($active_cat === 0 && $categories) {
+                $active_cat = (int)array_key_first($categories);
+            }
         }
 
-        // category tab bar (server-side links, thead = active, tcat = rest)
+        // category tab bar (server-side links, thead = active, tcat = rest).
+        // Every category gets a tab, including those without plots yet.
         $tab_cells = '';
         foreach ($categories as $cid => $category) {
-            if (empty($counts[$cid])) {
-                continue;
-            }
             $cls = ((int)$cid === $active_cat ? 'thead' : 'tcat') . ' plotcp_tab';
             $tab_cells .= '<td class="' . $cls . '"><a href="plotcp.php?cat=' . (int)$cid . '">'
                 . htmlspecialchars_uni((string)$category['name']) . '</a></td>';
@@ -65,6 +67,21 @@ class Plotcp_Frontend
             $category_tabs = '<table border="0" cellspacing="' . (int)$theme['borderwidth']
                 . '" cellpadding="' . (int)$theme['tablespace'] . '" class="tborder plotcp_tabs"><tr>'
                 . $tab_cells . '<td class="tcat" width="100%">&nbsp;</td></tr></table>';
+        }
+
+        // description of the active category, shown between the tabs and the
+        // plot list. Admin-authored, so raw HTML/MyCode is allowed like plot
+        // descriptions. Empty categories render nothing.
+        $category_description = '';
+        if ($active_cat > 0
+            && isset($categories[$active_cat])
+            && trim((string)$categories[$active_cat]['description']) !== ''
+        ) {
+            $desc = self::parseDescription((string)$categories[$active_cat]['description']);
+            $category_description = '<table border="0" cellspacing="' . (int)$theme['borderwidth']
+                . '" cellpadding="' . (int)$theme['tablespace']
+                . '" class="tborder plotcp_cat_desc"><tr><td class="trow1 plotcp_description">'
+                . $desc . '</td></tr></table>';
         }
 
         // plots of the active category, newest inplay date first
@@ -219,21 +236,32 @@ class Plotcp_Frontend
         $scene_rows = '';
         $altbg = 'trow1';
         $query = $db->query('
-            SELECT pt.tid, t.subject, t.uid AS thread_uid, t.visible AS thread_visible, f.name AS forum_name
+            SELECT pt.tid, t.subject, t.uid AS thread_uid, t.visible AS thread_visible
             FROM ' . TABLE_PREFIX . 'plotcp_plot_threads pt
             LEFT JOIN ' . TABLE_PREFIX . 'threads t ON (t.tid = pt.tid)
-            LEFT JOIN ' . TABLE_PREFIX . 'forums f ON (f.fid = t.fid)
             WHERE pt.pid = ' . $pid . '
             ORDER BY t.subject ASC
         ');
+        $scene_threads = [];
         while ($row = $db->fetch_array($query)) {
             if ($row['subject'] === null || (int)$row['thread_visible'] < 0) {
                 continue;
             }
+            $scene_threads[] = $row;
+        }
+
+        // scene metadata (date, daytime, location) comes from the logbook plugin
+        $logbook_scenes = Plotcp_Database::getLogbookScenes(
+            array_map(function ($r) { return (int)$r['tid']; }, $scene_threads)
+        );
+
+        foreach ($scene_threads as $row) {
             $tid            = (int)$row['tid'];
             $thread_link    = htmlspecialchars_uni(get_thread_link($tid));
             $thread_subject = htmlspecialchars_uni((string)$row['subject']);
-            $forum_name     = htmlspecialchars_uni((string)$row['forum_name']);
+            $scene_info     = isset($logbook_scenes[$tid])
+                ? self::logbookSceneInfo($logbook_scenes[$tid])
+                : '';
             $unlink_form    = Plotcp_Permissions::canLinkThread($mybb->user, ['uid' => (int)$row['thread_uid']])
                 ? self::unlinkForm($tid)
                 : '';
@@ -250,11 +278,92 @@ class Plotcp_Frontend
         return $detail;
     }
 
+    /**
+     * Formats a logbook scene row (participants, location, in-play date,
+     * daytime, scene type) for the linked-scene list. Mirrors the meta bar the
+     * logbook plugin renders in the forum thread listing
+     * (logbook_handle_thread_display): same icons and logbook-thread-meta
+     * classes, so the row matches that look – logbook.css is attached globally.
+     * Reuses the logbook plugin's own helpers when it is active and degrades to
+     * the raw values otherwise. Returns '' when nothing is known.
+     */
+    private static function logbookSceneInfo(array $scene): string
+    {
+        global $lang;
+
+        // pull in the logbook language strings for month/daytime names once
+        static $lang_loaded = false;
+        if (!$lang_loaded && function_exists('logbook_get_month')) {
+            $lang->load('logbook', false, true);
+            $lang_loaded = true;
+        }
+
+        // same inline icons the logbook plugin uses in the thread listing
+        $icon_users    = '<svg class="lb-icon" viewBox="0 0 16 16" fill="none"><circle cx="5.5" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M1 13.5c0-2.49 2.01-4.5 4.5-4.5S10 11.01 10 13.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="11.5" cy="5" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M13.5 9.5c1.38.5 2.5 1.8 2.5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+        $icon_pin      = '<svg class="lb-icon" viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5.52 1.5 3.5 3.52 3.5 6c0 3.75 4.5 8.5 4.5 8.5S12.5 9.75 12.5 6C12.5 3.52 10.48 1.5 8 1.5zM8 7.75A1.75 1.75 0 1 1 8 4.25 1.75 1.75 0 0 1 8 7.75z" fill="currentColor"/></svg>';
+        $icon_calendar = '<svg class="lb-icon" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 7h13" stroke="currentColor" stroke-width="1.3"/><path d="M5 1.5V4M11 1.5V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+        $icon_clock    = '<svg class="lb-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.5V8l2.5 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+        $items = '';
+
+        // participants (already HTML-safe: usernames escaped inside the helper)
+        if ($scene['id'] > 0 && function_exists('logbook_get_participant_string')) {
+            $members = logbook_get_participant_string((int)$scene['id']);
+            if ($members !== '') {
+                $items .= '<span class="logbook-thread-meta-item">' . $icon_users . $members . '</span>';
+            }
+        }
+
+        // location
+        if (trim((string)$scene['ort']) !== '') {
+            $items .= '<span class="logbook-thread-meta-item">' . $icon_pin
+                . htmlspecialchars_uni((string)$scene['ort']) . '</span>';
+        }
+
+        // in-play date: only the components that are actually set
+        $date = [];
+        if ($scene['tag'] > 0) {
+            $date[] = (int)$scene['tag'] . '.';
+        }
+        if ($scene['monat'] > 0) {
+            $date[] = function_exists('logbook_get_month')
+                ? logbook_get_month((int)$scene['monat'])
+                : (string)$scene['monat'];
+        }
+        if ($scene['jahr'] > 0) {
+            $date[] = (string)(int)$scene['jahr'];
+        }
+        if ($date) {
+            $items .= '<span class="logbook-thread-meta-item">' . $icon_calendar
+                . htmlspecialchars_uni(implode(' ', $date)) . '</span>';
+        }
+
+        // daytime (morning … night); only meaningful with the logbook helper
+        if ($scene['time'] > 0 && function_exists('logbook_get_time')) {
+            $items .= '<span class="logbook-thread-meta-item">' . $icon_clock
+                . htmlspecialchars_uni(logbook_get_time((int)$scene['time'])) . '</span>';
+        }
+
+        // scene type badge (already HTML from the logbook helper)
+        if (function_exists('logbook_get_scene_type_badge')) {
+            $badge = logbook_get_scene_type_badge((int)$scene['scene_type']);
+            if ($badge !== '') {
+                $items .= '<span class="logbook-thread-meta-item logbook-thread-meta-badge">' . $badge . '</span>';
+            }
+        }
+
+        if ($items === '') {
+            return '';
+        }
+
+        return '<span class="logbook-thread-meta">' . $items . '</span>';
+    }
+
     /* ---------------------------------------------------------------------
      * Groups page (join/leave, propose form)
      * ------------------------------------------------------------------ */
 
-    public static function renderGroups(): string
+    public static function renderGroups(int $selected_gid = 0): string
     {
         global $mybb, $lang, $templates, $theme, $header, $headerinclude, $footer;
 
@@ -273,12 +382,17 @@ class Plotcp_Frontend
                 continue;
             }
 
-            $group_name        = htmlspecialchars_uni((string)$group['name']);
             $group_description = htmlspecialchars_uni((string)$group['description']);
 
             if ($pending) {
+                // pending groups have no members yet, so no link
+                $group_name = htmlspecialchars_uni((string)$group['name']);
                 eval('$group_rows .= "' . $templates->get('plotcp_groups_pending_bit') . '";');
             } else {
+                // approved group names link to their member list below
+                $group_name = '<a href="plotcp.php?action=groups&amp;gid=' . (int)$gid
+                    . '#plotcp_members">' . htmlspecialchars_uni((string)$group['name']) . '</a>';
+                $group_row_bg      = ((int)$gid === $selected_gid) ? 'trow_shaded' : $altbg;
                 $member_count      = isset($counts[$gid]) ? (int)$counts[$gid] : 0;
                 $membership_button = $uid > 0
                     ? self::membershipButton((int)$gid, in_array((int)$gid, $user_gids, true))
@@ -290,6 +404,38 @@ class Plotcp_Frontend
         if ($group_rows === '') {
             $group_rows = '<tr><td class="trow1" colspan="4" align="center">'
                 . htmlspecialchars_uni($lang->plotcp_no_groups) . '</td></tr>';
+        }
+
+        // member list of the selected group (approved groups only; anyone who
+        // can see the page may see who is in a group, like the member counts)
+        $members_panel = '';
+        if ($selected_gid > 0) {
+            $sel_group = Plotcp_Database::getGroup($selected_gid);
+            if ($sel_group && (int)$sel_group['approved'] === 1) {
+                $members_title = $lang->sprintf($lang->plotcp_group_members_title,
+                    htmlspecialchars_uni((string)$sel_group['name']));
+
+                $member_rows = '';
+                $altbg = 'trow1';
+                foreach (Plotcp_Database::getGroupMembers($selected_gid) as $m) {
+                    $member_link = build_profile_link(
+                        format_name(htmlspecialchars_uni((string)$m['username']),
+                            $m['usergroup'], $m['displaygroup']),
+                        (int)$m['uid']);
+                    $member_joined = my_date($mybb->settings['dateformat'], (int)$m['dateline']);
+                    // team members can remove a person from the group
+                    $member_controls = $is_team
+                        ? self::removeMemberForm($selected_gid, (int)$m['uid'])
+                        : '&nbsp;';
+                    eval('$member_rows .= "' . $templates->get('plotcp_groups_member_bit') . '";');
+                    $altbg = $altbg === 'trow1' ? 'trow2' : 'trow1';
+                }
+                if ($member_rows === '') {
+                    $member_rows = '<tr><td class="trow1" colspan="3">'
+                        . htmlspecialchars_uni($lang->plotcp_group_no_members) . '</td></tr>';
+                }
+                eval('$members_panel = "' . $templates->get('plotcp_groups_members') . '";');
+            }
         }
 
         $propose_form = '';
@@ -448,6 +594,39 @@ class Plotcp_Frontend
      * ------------------------------------------------------------------ */
 
     /** "12.3.1247 – 2.4.1247" (single day: only the start date). */
+    /* ---------------------------------------------------------------------
+     * Global template variable (current inplay months)
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Builds {$plotcp_current_plots}: published plots whose inplay range
+     * overlaps the configured current inplay months, rendered through the
+     * plotcp_current_* templates. Empty string when there is nothing to show.
+     * The month texts of these months come from the rpgcalendar plugin.
+     */
+    public static function buildCurrentPlots(): string
+    {
+        global $templates;
+
+        $plots = Plotcp_Database::getPlotsForInplayMonths(Plotcp_Database::currentInplayMonths());
+        if (!$plots) {
+            return '';
+        }
+
+        $plot_items = '';
+        foreach ($plots as $p) {
+            $plot_link   = 'plotcp.php?action=view&amp;pid=' . (int)$p['pid'];
+            $plot_title  = htmlspecialchars_uni((string)$p['title']);
+            $plot_badges = self::badges($p);
+            $plot_date   = self::formatDateRange($p);
+            eval('$plot_items .= "' . $templates->get('plotcp_current_plot_bit') . '";');
+        }
+
+        eval('$plots_out = "' . $templates->get('plotcp_current_plots') . '";');
+
+        return $plots_out;
+    }
+
     public static function formatDateRange(array $plot): string
     {
         if ((int)$plot['has_date'] !== 1) {
@@ -595,6 +774,22 @@ class Plotcp_Frontend
             . '<input type="hidden" name="my_post_key" value="' . $mybb->post_code . '" />'
             . '<input type="submit" class="button plotcp_button_small" value="'
             . htmlspecialchars_uni($lang->plotcp_btn_unlink) . '" />'
+            . '</form>';
+    }
+
+    /** Team-only button to remove a member from a plotting group. */
+    private static function removeMemberForm(int $gid, int $uid): string
+    {
+        global $mybb, $lang;
+
+        return '<form action="plotcp.php" method="post" class="plotcp_inline_form" '
+            . 'onsubmit="return confirm(\'' . addslashes($lang->plotcp_confirm_remove_member) . '\');">'
+            . '<input type="hidden" name="action" value="remove_group_member" />'
+            . '<input type="hidden" name="gid" value="' . $gid . '" />'
+            . '<input type="hidden" name="uid" value="' . $uid . '" />'
+            . '<input type="hidden" name="my_post_key" value="' . $mybb->post_code . '" />'
+            . '<input type="submit" class="button plotcp_button_small" value="'
+            . htmlspecialchars_uni($lang->plotcp_btn_remove_member) . '" />'
             . '</form>';
     }
 }

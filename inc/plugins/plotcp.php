@@ -17,12 +17,17 @@ if (!defined('IN_MYBB')) {
 
 $plugins->add_hook('global_start',                   'plotcp_register_alert_formatter');
 $plugins->add_hook('xmlhttp',                        'plotcp_register_alert_formatter');
+$plugins->add_hook('global_intermediate',            'plotcp_handle_globals');
+$plugins->add_hook('build_forumbits_forum',          'plotcp_handle_forumbits');
+$plugins->add_hook('pre_output_page',                'plotcp_handle_output');
 $plugins->add_hook('showthread_start',               'plotcp_handle_showthread');
 $plugins->add_hook('newthread_start',                'plotcp_handle_newthread');
 $plugins->add_hook('newthread_do_newthread_end',     'plotcp_handle_newthread_save');
 $plugins->add_hook('forumdisplay_thread',            'plotcp_handle_forumdisplay_thread');
 $plugins->add_hook('rpgcalendar_collect_events',     'plotcp_rpgcalendar_collect');
 $plugins->add_hook('class_moderation_delete_thread', 'plotcp_handle_thread_delete');
+$plugins->add_hook('index_start',                    'plotcp_handle_index_notice');
+$plugins->add_hook('modcp_start',                    'plotcp_handle_modcp');
 $plugins->add_hook('admin_tools_menu',               'plotcp_admin_menu');
 $plugins->add_hook('admin_tools_action_handler',     'plotcp_admin_action');
 
@@ -34,7 +39,7 @@ function plotcp_info(): array
         'website'       => 'https://github.com/pand0rica/plot-cp',
         'author'        => 'pand0rica',
         'authorsite'    => 'https://github.com/pand0rica',
-        'version'       => '1.0.0',
+        'version'       => '1.1.0',
         'guid'          => '',
         'codename'      => 'plotcp',
         'compatibility' => '18*',
@@ -63,11 +68,15 @@ function plotcp_activate(): void
     Plotcp_Installer::installStylesheet();
     Plotcp_Installer::registerAlertTypes();
     Plotcp_Installer::injectSceneBox();
+    Plotcp_Installer::injectIndexNotice();
+    Plotcp_Installer::injectModcpNav();
 }
 
 function plotcp_deactivate(): void
 {
     require_once MYBB_ROOT . 'inc/plugins/plotcp/core/installer.php';
+    Plotcp_Installer::removeModcpNavInjection();
+    Plotcp_Installer::removeIndexNoticeInjection();
     Plotcp_Installer::removeSceneBoxInjection();
     Plotcp_Installer::unregisterAlertTypes();
     Plotcp_Installer::removeStylesheet();
@@ -151,6 +160,77 @@ function plotcp_register_alert_formatter(): void
     }
 
     $registered = true;
+}
+
+/**
+ * Exposes a globally usable template variable on every page:
+ *   {$plotcp_current_plots} – published plots whose inplay range overlaps the
+ *                             current inplay months (plotcp_current_inplay
+ *                             setting)
+ * Renders from its own templates so it can be styled and placed in any
+ * top-level template. Disabled (empty) while the setting is empty, so ordinary
+ * page loads pay no query cost. The month texts of the current inplay months
+ * are provided separately by the rpgcalendar plugin, not here.
+ */
+function plotcp_handle_globals(): void
+{
+    global $mybb, $lang, $plotcp_current_plots;
+
+    $plotcp_current_plots = '';
+
+    if (empty($mybb->settings['plotcp_current_inplay'])) {
+        return;
+    }
+
+    $lang->load('plotcp');
+
+    plotcp_load_core();
+    require_once MYBB_ROOT . 'inc/plugins/plotcp/core/frontend.php';
+    $plotcp_current_plots = Plotcp_Frontend::buildCurrentPlots();
+}
+
+/**
+ * Lets admins drop the literal token {$plotcp_current_plots} into a forum or
+ * category description (board index / subforum lists). The description is run
+ * through MyBB's '&' sanitiser (functions_forumlist.php), which would
+ * double-encode the rendered HTML entities of the value, so here we only swap
+ * the token for a sanitiser-proof sentinel (an HTML comment, no '&'). The real
+ * value is injected in plotcp_handle_output() after the page is assembled.
+ */
+function plotcp_handle_forumbits($forum)
+{
+    if (!empty($forum['description'])
+        && strpos($forum['description'], '{$plotcp_current_plots}') !== false
+    ) {
+        $forum['description'] = str_replace(
+            '{$plotcp_current_plots}',
+            '<!--PLOTCP_CURRENT_PLOTS-->',
+            $forum['description']
+        );
+    }
+
+    return $forum;
+}
+
+/**
+ * Replaces the sentinel left by plotcp_handle_forumbits() with the built
+ * {$plotcp_current_plots} value once the whole page is assembled – past the
+ * forum-description sanitiser, so the rendered HTML entities survive intact.
+ * Cheap no-op on every page unless a description on the page used the token.
+ */
+function plotcp_handle_output($contents)
+{
+    global $plotcp_current_plots;
+
+    if (strpos($contents, '<!--PLOTCP_CURRENT_PLOTS-->') !== false) {
+        $contents = str_replace(
+            '<!--PLOTCP_CURRENT_PLOTS-->',
+            (string)$plotcp_current_plots,
+            $contents
+        );
+    }
+
+    return $contents;
 }
 
 /**
@@ -275,6 +355,56 @@ function plotcp_handle_thread_delete($tid)
     }
 
     return $tid;
+}
+
+/**
+ * Board index notice ({$plotcp_group_notice}, injected after {$header}).
+ * Shown only to team members and only while group proposals are waiting, so
+ * the team is reminded to review them even without checking their alerts.
+ */
+function plotcp_handle_index_notice(): void
+{
+    global $mybb, $plotcp_group_notice;
+
+    $plotcp_group_notice = '';
+
+    plotcp_load_core();
+    if (!Plotcp_Permissions::isTeam($mybb->user)) {
+        return;
+    }
+
+    $count = Plotcp_Database::getPendingGroupCount();
+    if ($count <= 0) {
+        return;
+    }
+
+    require_once MYBB_ROOT . 'inc/plugins/plotcp/core/modcp.php';
+    $plotcp_group_notice = Plotcp_Modcp::buildIndexNotice($count);
+}
+
+/**
+ * ModCP integration: sets the navigation entry ({$plotcp_modcp_nav}) for every
+ * ModCP page of a team member and, for our own action, renders the group
+ * review page and stops. MyBB's modcp.php already restricted access to
+ * canmodcp users; isTeam() narrows that to the plot team.
+ */
+function plotcp_handle_modcp(): void
+{
+    global $mybb, $plotcp_modcp_nav;
+
+    $plotcp_modcp_nav = '';
+
+    plotcp_load_core();
+    if (!Plotcp_Permissions::isTeam($mybb->user)) {
+        return;
+    }
+
+    require_once MYBB_ROOT . 'inc/plugins/plotcp/core/modcp.php';
+    $plotcp_modcp_nav = Plotcp_Modcp::navItem();
+
+    if ($mybb->get_input('action') === Plotcp_Modcp::ACTION) {
+        Plotcp_Modcp::handle();
+    }
 }
 
 function plotcp_admin_menu(array &$sub_menu): void

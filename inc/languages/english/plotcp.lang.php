@@ -39,6 +39,13 @@ $l['plotcp_group_description'] = 'Description';
 $l['plotcp_btn_propose'] = 'Propose group';
 $l['plotcp_group_pending_note'] = 'Waiting for team approval';
 $l['plotcp_no_groups'] = 'There are no plotting groups yet.';
+$l['plotcp_group_members_title'] = 'Members of {1}';
+$l['plotcp_group_member_col'] = 'Member';
+$l['plotcp_group_joined_col'] = 'Member since';
+$l['plotcp_group_no_members'] = 'This plotting group has no members yet.';
+$l['plotcp_btn_remove_member'] = 'Remove';
+$l['plotcp_confirm_remove_member'] = 'Really remove this member from the plotting group?';
+$l['plotcp_member_removed'] = 'The member has been removed from the plotting group.';
 
 // Submission form
 $l['plotcp_submit_title'] = 'Submit a plot';
@@ -97,3 +104,32 @@ $l['plotcp_error_start_invalid'] = 'The start date is not a valid calendar date.
 $l['plotcp_error_end_partial'] = 'Please fill in the complete end date or leave it entirely empty.';
 $l['plotcp_error_end_invalid'] = 'The end date is not a valid calendar date.';
 $l['plotcp_error_end_before_start'] = 'The end date must not be before the start date.';
+
+// Board index notice (team, pending group proposals)
+$l['plotcp_notice_title'] = 'Plotting Team';
+$l['plotcp_notice_text'] = 'There are {1} plotting group proposal(s) waiting for approval.';
+$l['plotcp_notice_link'] = 'Review in the ModCP';
+
+// ModCP – group review
+$l['plotcp_modcp_title'] = 'Approve plotting groups';
+$l['plotcp_modcp_nav_title'] = 'Plot Control Panel';
+$l['plotcp_modcp_nav_groups'] = 'Plotting groups';
+$l['plotcp_modcp_col_members'] = 'Members';
+$l['plotcp_modcp_col_status'] = 'Status';
+$l['plotcp_modcp_status_pending'] = 'Awaiting approval';
+$l['plotcp_modcp_status_approved'] = 'Approved';
+$l['plotcp_modcp_submitted_by'] = 'Proposed by';
+$l['plotcp_modcp_no_groups'] = 'There are no plotting groups yet.';
+$l['plotcp_modcp_edit_group'] = 'Edit plotting group';
+$l['plotcp_modcp_field_order'] = 'Display order';
+$l['plotcp_modcp_btn_approve'] = 'Approve';
+$l['plotcp_modcp_btn_reject'] = 'Reject';
+$l['plotcp_modcp_btn_edit'] = 'Edit';
+$l['plotcp_modcp_btn_delete'] = 'Delete';
+$l['plotcp_modcp_btn_save'] = 'Save';
+$l['plotcp_modcp_btn_cancel'] = 'Cancel';
+$l['plotcp_modcp_confirm_reject'] = 'Really reject and delete this group proposal?';
+$l['plotcp_modcp_confirm_delete'] = 'Really delete this plotting group? Memberships and plot links will be lost.';
+$l['plotcp_modcp_approved'] = 'The plotting group has been approved. Its members are being notified.';
+$l['plotcp_modcp_deleted'] = 'The plotting group has been deleted.';
+$l['plotcp_modcp_saved'] = 'The changes have been saved.';

@@ -493,7 +493,12 @@ function plotcp_acp_categories(): void
 
     foreach (Plotcp_Database::getCategories() as $cid => $category) {
         $table->construct_cell(htmlspecialchars_uni((string)$category['name']));
-        $table->construct_cell(htmlspecialchars_uni((string)$category['description']));
+        // long descriptions are truncated in the list; edit shows the full text
+        $desc_preview = (string)$category['description'];
+        if (my_strlen($desc_preview) > 160) {
+            $desc_preview = my_substr($desc_preview, 0, 160) . '…';
+        }
+        $table->construct_cell(htmlspecialchars_uni($desc_preview));
         $table->construct_cell((int)$category['display_order'], ['class' => 'align_center']);
 
         $popup = new PopupMenu('cat_' . $cid, $lang->plotcp_admin_options);
@@ -531,8 +536,8 @@ function plotcp_acp_categories(): void
     $container = new FormContainer($form_title);
     $container->output_row($lang->plotcp_admin_col_name, '',
         $form->generate_text_box('name', (string)($edit_row ? $edit_row['name'] : '')), 'name');
-    $container->output_row($lang->plotcp_admin_col_description, '',
-        $form->generate_text_box('description', (string)($edit_row ? $edit_row['description'] : '')), 'description');
+    $container->output_row($lang->plotcp_admin_col_description, $lang->plotcp_admin_category_desc_hint,
+        $form->generate_text_area('description', (string)($edit_row ? $edit_row['description'] : ''), ['rows' => 8]), 'description');
     $container->output_row($lang->plotcp_admin_col_order, '',
         $form->generate_numeric_field('display_order',
             (int)($edit_row ? $edit_row['display_order'] : 0), ['min' => 0]), 'display_order');
@@ -572,7 +577,7 @@ function plotcp_acp_groups(): void
                 flash_message($lang->plotcp_error_invalid_group, 'error');
                 admin_redirect($base_url);
             }
-            $db->update_query('plotcp_groups', ['approved' => 1], 'gid = ' . $gid);
+            Plotcp_Database::approveGroup($gid);
             Plotcp_Alerts::sendNewGroup($group);
             flash_message($lang->plotcp_admin_group_approved, 'success');
             admin_redirect($base_url);

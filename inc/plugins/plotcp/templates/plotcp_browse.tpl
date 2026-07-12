@@ -11,6 +11,7 @@
 </div>
 <br class="clear" />
 {$category_tabs}
+{$category_description}
 {$content}
 {$footer}
 </body>

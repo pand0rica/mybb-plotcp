@@ -236,6 +236,31 @@ class Plotcp_Database
         return $counts;
     }
 
+    /**
+     * Members of a single group with the user fields needed for a profile
+     * link, ordered by username.
+     *
+     * @return array[] each ['uid','username','usergroup','displaygroup','dateline']
+     */
+    public static function getGroupMembers(int $gid): array
+    {
+        global $db;
+
+        $members = [];
+        $query = $db->query('
+            SELECT u.uid, u.username, u.usergroup, u.displaygroup, gm.dateline
+            FROM ' . TABLE_PREFIX . 'plotcp_group_members gm
+            INNER JOIN ' . TABLE_PREFIX . 'users u ON (u.uid = gm.uid)
+            WHERE gm.gid = ' . (int)$gid . '
+            ORDER BY u.username ASC
+        ');
+        while ($row = $db->fetch_array($query)) {
+            $members[] = $row;
+        }
+
+        return $members;
+    }
+
     public static function isGroupMember(int $gid, int $uid): bool
     {
         global $db;
@@ -258,6 +283,24 @@ class Plotcp_Database
         }
 
         return $gids;
+    }
+
+    /** @return int number of group proposals still awaiting team approval */
+    public static function getPendingGroupCount(): int
+    {
+        global $db;
+
+        $row = $db->fetch_array($db->simple_select('plotcp_groups', 'COUNT(*) AS num', 'approved = 0'));
+
+        return $row ? (int)$row['num'] : 0;
+    }
+
+    /** Marks a proposed group as approved (does not send any alert itself). */
+    public static function approveGroup(int $gid): void
+    {
+        global $db;
+
+        $db->update_query('plotcp_groups', ['approved' => 1], 'gid = ' . $gid);
     }
 
     /** Deletes a plotting group including memberships and plot links. */
@@ -392,6 +435,136 @@ class Plotcp_Database
         }
 
         return $map;
+    }
+
+    /**
+     * Best-effort scene metadata from the logbook plugin (its `scene` table,
+     * keyed by thread id). Returns an empty map when logbook is not installed,
+     * so plotcp keeps working without it. One scene per thread (the lowest id)
+     * is kept – a linked plot thread normally maps to exactly one scene.
+     *
+     * @param int[] $tids
+     * @return array tid => ['id','ort','jahr','monat','tag','time','scene_type','title']
+     */
+    public static function getLogbookScenes(array $tids): array
+    {
+        global $db;
+
+        if (!$db->table_exists('scene')) {
+            return [];
+        }
+
+        $tids = array_values(array_unique(array_filter(array_map('intval', $tids),
+            function ($tid) { return $tid > 0; })));
+        if (!$tids) {
+            return [];
+        }
+
+        $map = [];
+        $query = $db->query('
+            SELECT id, tid, ort, jahr, monat, tag, time, scene_type, title
+            FROM ' . TABLE_PREFIX . 'scene
+            WHERE tid IN (' . implode(',', $tids) . ')
+            ORDER BY id ASC
+        ');
+        while ($row = $db->fetch_array($query)) {
+            $tid = (int)$row['tid'];
+            if (isset($map[$tid])) {
+                continue; // keep the first (lowest id) scene per thread
+            }
+            $map[$tid] = [
+                'id'         => (int)$row['id'],
+                'ort'        => (string)$row['ort'],
+                'jahr'       => (int)$row['jahr'],
+                'monat'      => (int)$row['monat'],
+                'tag'        => (int)$row['tag'],
+                'time'       => (int)$row['time'],
+                'scene_type' => (int)$row['scene_type'],
+                'title'      => (string)$row['title'],
+            ];
+        }
+
+        return $map;
+    }
+
+    /* ---------------------------------------------------------------------
+     * Current inplay months (global template variables)
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Parses the plotcp_current_inplay setting into a list of inplay months.
+     * Format: comma-separated "year-month" (the month is the part after the
+     * last hyphen, so negative astronomical years work: e.g. "-5-3"). Invalid
+     * tokens are skipped. Duplicates are removed.
+     *
+     * @return array[] each ['year' => int, 'month' => int]
+     */
+    public static function currentInplayMonths(): array
+    {
+        global $mybb;
+
+        $raw = isset($mybb->settings['plotcp_current_inplay'])
+            ? trim((string)$mybb->settings['plotcp_current_inplay']) : '';
+        if ($raw === '') {
+            return [];
+        }
+
+        $months = [];
+        $seen   = [];
+        foreach (explode(',', $raw) as $token) {
+            $token = trim($token);
+            if ($token === '' || !preg_match('/^(-?\d+)-(\d{1,2})$/', $token, $parts)) {
+                continue;
+            }
+            $month = (int)$parts[2];
+            if ($month < 1 || $month > 12) {
+                continue;
+            }
+            $year = (int)$parts[1];
+            $key  = $year . ':' . $month;
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $months[]   = ['year' => $year, 'month' => $month];
+        }
+
+        return $months;
+    }
+
+    /**
+     * Published, dated plots whose inplay range overlaps any of the given
+     * months. Uses the precomputed start_key/end_key (y*10000+m*100+d).
+     *
+     * @param array[] $months each ['year' => int, 'month' => int]
+     * @return array[] plot rows, earliest first
+     */
+    public static function getPlotsForInplayMonths(array $months): array
+    {
+        global $db;
+
+        if (!$months) {
+            return [];
+        }
+
+        $ors = [];
+        foreach ($months as $m) {
+            $y  = (int)$m['year'];
+            $mo = (int)$m['month'];
+            $ms = $y * 10000 + $mo * 100 + 1;   // first day of the month
+            $me = $y * 10000 + $mo * 100 + 31;  // upper bound for the month
+            $ors[] = '(start_key <= ' . $me . ' AND end_key >= ' . $ms . ')';
+        }
+
+        $plots = [];
+        $query = $db->query('SELECT * FROM ' . TABLE_PREFIX . 'plotcp_plots
+            WHERE visible = 1 AND has_date = 1 AND (' . implode(' OR ', $ors) . ')
+            ORDER BY start_key ASC, title ASC');
+        while ($row = $db->fetch_array($query)) {
+            $plots[] = $row;
+        }
+
+        return $plots;
     }
 
     /* ---------------------------------------------------------------------

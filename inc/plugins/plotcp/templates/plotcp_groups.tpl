@@ -17,6 +17,7 @@
 </tr>
 {$group_rows}
 </table>
+{$members_panel}
 {$propose_form}
 {$footer}
 </body>

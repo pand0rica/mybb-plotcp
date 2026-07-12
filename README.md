@@ -19,9 +19,18 @@ inplay threads and automatic RPG Calendar integration.
 - **User submissions**: users can submit plots (start as preview) and propose
   new plotting groups (require team approval; approval notifies all main
   accounts)
+- **ModCP group review**: the team approves, edits or rejects group proposals
+  right in the Moderator CP – no ACP access required – and gets a hint on the
+  board index while proposals are waiting
 - **Scene linking**: in configured inplay/archive forums, the thread starter
   and the team can link a thread to a plot; the plot page lists all linked
-  scenes
+  scenes, showing each scene's participants, location and in-play date from the
+  [Logbook](https://github.com/pand0rica/logbook) plugin when it is installed
+- **Group members**: on the groups page a plotting group can be clicked to see
+  its members; the team can remove a member from a group
+- **Current plots variable**: a global template variable `{$plotcp_current_plots}`
+  lists the published plots of the current in-play months (a setting), usable in
+  any template **and** inside forum/category descriptions
 - **Optional IC date range** per plot with arbitrary years (negative years
   and year 0 included, proleptic Gregorian calendar) – dated plots appear
   automatically in the [RPG Calendar](https://github.com/pand0rica/rpgcalendar)
@@ -37,6 +46,9 @@ inplay threads and automatic RPG Calendar integration.
   in the calendar; without it nothing happens
 - **Optional:** EnhancedAccountSwitcher – "new group" alerts then go to main
   accounts only instead of all accounts
+- **Optional:** [Logbook](https://github.com/pand0rica/logbook) – linked scenes
+  on a plot page then show the scene's participants, location, in-play date and
+  daytime; without it a linked scene just shows its thread link
 
 No other dependencies.
 
@@ -63,6 +75,7 @@ No other dependencies.
 | **Archive forums** | Additional (archived) forums with the plot link box. |
 | **Allow plot submissions** | Users may submit new plots via the frontend form. |
 | **Allow group proposals** | Users may propose new plotting groups (team approval required). |
+| **Current inplay months** | One or more in-play months as `year-month`, comma separated (e.g. `1487-3, 1487-4`). Drives the `{$plotcp_current_plots}` variable. Empty = variable disabled. |
 
 ## Usage
 
@@ -101,12 +114,36 @@ No other dependencies.
 - Frontend page `plotcp.php` → **Plotting groups**: every approved group is
   listed with description and member count. **Join** and **Leave** are single
   clicks.
+- **See members:** click a group name to list its members (with the date they
+  joined) below the table.
+- **Remove a member (team):** in that member list, team members get a
+  **Remove** button next to each member to take someone out of the group.
 - **Propose a group:** the form below the list creates a proposal that waits
-  for team approval (ACP → Plot Control Panel → Plotting groups → options →
-  **Approve**). On approval every main account receives an alert (users can
-  disable this in their alert settings).
+  for team approval. On approval every main account receives an alert (users
+  can disable this in their alert settings).
 
 ![Groups page](docs/screenshots/groups.png)
+
+### Reviewing group proposals (team)
+
+Team members (groups set under **Team groups** who also have Moderator CP
+access) get two ways to handle a new group proposal:
+
+1. **Board index notice:** while proposals are waiting, a hint appears on the
+   forum index with a link to the review page.
+2. **ModCP:** **Moderator CP → Plot Control Panel → Plotting groups** (also
+   reachable from the "new group proposed" alert). The overview lists waiting
+   proposals (with the submitter) and approved groups. Per group:
+   - **Approve** – publishes the group; all main accounts get the "new group"
+     alert and users can join it.
+   - **Edit** – change name, description and display order.
+   - **Reject** (proposals) / **Delete** (approved groups) – removes the group
+     permanently, including memberships and plot links.
+
+The same actions remain available in the ACP (ACP → Plot Control Panel →
+Plotting groups) for admins.
+
+![ModCP group review](docs/screenshots/modcp-groups.png)
 
 ### Submitting plots (users)
 
@@ -153,6 +190,30 @@ No configuration needed. If the RPG Calendar plugin is installed, every
 **published** plot with a date automatically appears in the month view as a
 chip with the CSS class `rpgcalendar_event--plot` and as a row in the
 important-events table. Previews are never delivered to the calendar.
+
+### Current plots variable
+
+The global template variable `{$plotcp_current_plots}` lists all published plots
+whose in-play range overlaps the **Current inplay months** (set under ACP →
+Configuration → Settings → Plot Control Panel, e.g. `1487-3, 1487-4`). When the
+setting is empty the variable stays empty and no queries run.
+
+You can use it in two ways:
+
+1. **In a template:** place `{$plotcp_current_plots}` in any top-level template
+   (e.g. `index`, `header`). It renders from the `plotcp_current_plots` /
+   `plotcp_current_plot_bit` templates, so you can restyle it freely.
+2. **In a forum or category description:** write the literal token
+   `{$plotcp_current_plots}` into a forum's or category's description (ACP →
+   Forums & Posts → Forums → edit → *Description*). On the board index the token
+   is replaced with the plot list. (For categories, make sure your theme's
+   `forumbit_depth1_cat` template actually outputs the description.)
+
+### Category descriptions
+
+A category description may be long text (HTML/BBCode allowed). If a category has
+a description, it is shown on the frontend between the category tabs and the
+plot list.
 
 ### Tips
 

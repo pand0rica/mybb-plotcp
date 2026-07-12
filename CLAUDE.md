@@ -16,13 +16,28 @@ Class/core split (like rpgcalendar/Blacklist):
   alert type codes)
 - `inc/plugins/plotcp/core/installer.php` – `Plotcp_Installer`: tables,
   settings (idempotent upgrade path), templates from `.tpl` files, stylesheet
-  in all themes, alert types, two reversible core-template injections
+  in all themes, alert types, four reversible core-template injections
   (`{$plotcp_scene_box}` after `{$pollbox}` in showthread,
-  `{$plotcp_newthread_select}` after `{$posticons}` in newthread; removal runs
-  before injection → idempotent)
+  `{$plotcp_newthread_select}` after `{$posticons}` in newthread,
+  `{$plotcp_group_notice}` after `{$header}` in index,
+  `{$plotcp_modcp_nav}` before the final `</table>` in modcp_nav; each removal
+  runs before its injection → idempotent)
+- `inc/plugins/plotcp/core/modcp.php` – `Plotcp_Modcp`: team-only ModCP page
+  for reviewing group proposals (approve/edit/reject; reject = delete) plus the
+  two injected fragments (`navItem()` → `{$plotcp_modcp_nav}`,
+  `buildIndexNotice()` → `{$plotcp_group_notice}`). Driven by the `modcp_start`
+  hook (sets nav for every ModCP page of a team member; renders + `exit`s for
+  `action=plotcp_groups`) and `index_start` (notice when proposals are
+  pending). Access = MyBB `canmodcp` gate ∩ `Plotcp_Permissions::isTeam`
+  (team = moderators). Uses only core theme classes, so no stylesheet attach is
+  needed on index/modcp. The ACP module keeps the same actions for admins.
 - `inc/plugins/plotcp/core/database.php` – `Plotcp_Database`: all CRUD,
   calendar math + date validation, group diff (`setPlotGroups`), alert
-  recipient queries (group members, team, main accounts)
+  recipient queries (group members, team, main accounts). Also: Logbook scene
+  lookup (`getLogbookScenes`, best effort via `table_exists('scene')`), single
+  group's member list (`getGroupMembers`), current-inplay parsing
+  (`currentInplayMonths` from the `plotcp_current_inplay` setting) + overlap
+  query (`getPlotsForInplayMonths`, `visible = 1` only)
 - `inc/plugins/plotcp/core/permissions.php` – `Plotcp_Permissions`: isTeam,
   canViewPreview (team ∪ preview_groups ∪ submitter), canLinkThread
   (starter ∨ team), isSceneForum; always checks usergroup AND additionalgroups
@@ -37,7 +52,14 @@ Class/core split (like rpgcalendar/Blacklist):
   plot nav grouped by `start_year` DESC + `start_key` DESC (newest first),
   right pane = `renderDetail($plot)`. Both the default list and `action=view`
   route through `renderBrowse`. Colours come from `thead`/`tcat`/`trow_shaded`
-  theme classes only – no own colours anywhere in the frontend CSS.
+  theme classes only – no own colours anywhere in the frontend CSS. Categories
+  are shown as tabs even without plots; a category's (long, TEXT) description is
+  rendered between the tabs and the plot list. `renderDetail` lists linked
+  scenes with their Logbook meta bar (participants/location/date/daytime/type,
+  same icons/classes as logbook's `forumdisplay_thread_end`). `renderGroups(gid)`
+  shows a clicked group's member list (team gets a per-member remove button →
+  `remove_group_member` POST). `buildCurrentPlots()` renders the
+  `{$plotcp_current_plots}` global (see hooks below).
 - `inc/plugins/plotcp/myalerts_formatter.php` – one formatter per alert code;
   escapes EVERY extra-details value on render (extra details are stored raw)
 - `inc/plugins/plotcp/calendar_provider.php` – `rpgcalendar_collect_events`
@@ -47,6 +69,15 @@ Class/core split (like rpgcalendar/Blacklist):
   before MyBB escapes the subject (line ~1092), so the plot title stays raw
   here; the tid→plot map is built once per page from `$threadcache`. Preview
   names only shown to viewers who pass `canViewPreview()`.
+- `global_intermediate` (`plotcp_handle_globals`) – builds `{$plotcp_current_plots}`
+  (published plots overlapping the `plotcp_current_inplay` months); empty (no
+  query) while the setting is empty. NOT `global_start` – theme/template cache
+  is not loaded there yet. Usable in templates AND in forum/category
+  descriptions via a two-phase swap: `build_forumbits_forum` replaces the
+  literal token `{$plotcp_current_plots}` in a description with a sanitiser-proof
+  HTML-comment sentinel (`<!--PLOTCP_CURRENT_PLOTS-->`, before MyBB's `&` fixup
+  in functions_forumlist), and `pre_output_page` swaps that sentinel for the
+  built value once the page is assembled. Both handlers are strpos-guarded.
 - `plotcp.php` (MyBB root) – frontend entry, action dispatch, all POST handlers
 - `admin/modules/tools/plotcp.php` – ACP module (loads `$lang->load('plotcp')`
   itself; tabs via `output_nav_tabs` with description keys)
@@ -99,6 +130,12 @@ new plot. The column stays for the calendar provider filter and legacy rows.
   entries are discarded silently by the consumer – keep delivering clean data
   anyway (a dropped plot is invisible, not an error).
 - Do not remove the `commit()` call in `Plotcp_Alerts::send()`.
+- The `{$plotcp_current_plots}` forum-description injection MUST stay two-phase
+  (token→sentinel in `build_forumbits_forum`, sentinel→value in
+  `pre_output_page`). Injecting the rendered HTML directly into a description
+  runs it through the forumlist `&` sanitiser, which double-encodes every named
+  entity (`&amp;`, `&ndash;`, links) – the sentinel (no `&`) passes through
+  untouched, and the real value is injected after the sanitiser.
 
 ## Testing
 

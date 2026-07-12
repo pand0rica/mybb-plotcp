@@ -39,6 +39,13 @@ $l['plotcp_group_description'] = 'Beschreibung';
 $l['plotcp_btn_propose'] = 'Gruppe vorschlagen';
 $l['plotcp_group_pending_note'] = 'Wartet auf Freigabe durch das Team';
 $l['plotcp_no_groups'] = 'Es gibt noch keine Plottinggruppen.';
+$l['plotcp_group_members_title'] = 'Mitglieder von {1}';
+$l['plotcp_group_member_col'] = 'Mitglied';
+$l['plotcp_group_joined_col'] = 'Mitglied seit';
+$l['plotcp_group_no_members'] = 'Diese Plottinggruppe hat noch keine Mitglieder.';
+$l['plotcp_btn_remove_member'] = 'Entfernen';
+$l['plotcp_confirm_remove_member'] = 'Dieses Mitglied wirklich aus der Plottinggruppe entfernen?';
+$l['plotcp_member_removed'] = 'Das Mitglied wurde aus der Plottinggruppe entfernt.';
 
 // Einreichen-Formular
 $l['plotcp_submit_title'] = 'Plot einreichen';
@@ -97,3 +104,32 @@ $l['plotcp_error_start_invalid'] = 'Das Startdatum ist kein gültiges Kalenderda
 $l['plotcp_error_end_partial'] = 'Bitte fülle das Enddatum vollständig aus oder lass es komplett leer.';
 $l['plotcp_error_end_invalid'] = 'Das Enddatum ist kein gültiges Kalenderdatum.';
 $l['plotcp_error_end_before_start'] = 'Das Enddatum darf nicht vor dem Startdatum liegen.';
+
+// Startseiten-Hinweis (Team, offene Gruppenvorschläge)
+$l['plotcp_notice_title'] = 'Plot-Team';
+$l['plotcp_notice_text'] = 'Es warten {1} Plottinggruppen-Vorschläge auf Freigabe.';
+$l['plotcp_notice_link'] = 'Im ModCP prüfen';
+
+// ModCP – Gruppen-Freigabe
+$l['plotcp_modcp_title'] = 'Plottinggruppen freigeben';
+$l['plotcp_modcp_nav_title'] = 'Plot Control Panel';
+$l['plotcp_modcp_nav_groups'] = 'Plottinggruppen';
+$l['plotcp_modcp_col_members'] = 'Mitglieder';
+$l['plotcp_modcp_col_status'] = 'Status';
+$l['plotcp_modcp_status_pending'] = 'Wartet auf Freigabe';
+$l['plotcp_modcp_status_approved'] = 'Freigegeben';
+$l['plotcp_modcp_submitted_by'] = 'Vorgeschlagen von';
+$l['plotcp_modcp_no_groups'] = 'Es gibt noch keine Plottinggruppen.';
+$l['plotcp_modcp_edit_group'] = 'Plottinggruppe bearbeiten';
+$l['plotcp_modcp_field_order'] = 'Sortierung';
+$l['plotcp_modcp_btn_approve'] = 'Freigeben';
+$l['plotcp_modcp_btn_reject'] = 'Ablehnen';
+$l['plotcp_modcp_btn_edit'] = 'Bearbeiten';
+$l['plotcp_modcp_btn_delete'] = 'Löschen';
+$l['plotcp_modcp_btn_save'] = 'Speichern';
+$l['plotcp_modcp_btn_cancel'] = 'Abbrechen';
+$l['plotcp_modcp_confirm_reject'] = 'Diesen Gruppenvorschlag wirklich ablehnen und löschen?';
+$l['plotcp_modcp_confirm_delete'] = 'Diese Plottinggruppe wirklich löschen? Mitgliedschaften und Plot-Verknüpfungen gehen verloren.';
+$l['plotcp_modcp_approved'] = 'Die Plottinggruppe wurde freigegeben. Die Mitglieder werden benachrichtigt.';
+$l['plotcp_modcp_deleted'] = 'Die Plottinggruppe wurde gelöscht.';
+$l['plotcp_modcp_saved'] = 'Die Änderungen wurden gespeichert.';
