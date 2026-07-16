@@ -146,6 +146,11 @@
     color: #666;
 }
 
+.plotcp_current_plots_empty {
+    font-style: italic;
+    color: #666;
+}
+
 /* Random plot spotlight ({$plotcp_random_plot}). Light defaults – restyle in
    the plotcp_random_plot template or your theme. */
 .plotcp_random_plot_meta {

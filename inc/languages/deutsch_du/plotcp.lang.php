@@ -10,6 +10,7 @@ $l['plotcp_nav'] = 'Plot Control Panel';
 $l['plotcp_btn_submit_plot'] = 'Plot einreichen';
 $l['plotcp_btn_groups'] = 'Plottinggruppen';
 $l['plotcp_no_plots'] = 'In dieser Ansicht gibt es noch keine Plots.';
+$l['plotcp_current_plots_empty'] = 'Für den aktuellen Inplay-Zeitraum gibt es derzeit keine Plots.';
 $l['plotcp_badge_preview'] = 'Vorschau';
 $l['plotcp_col_plot'] = 'Plot';
 $l['plotcp_col_groups'] = 'Plottinggruppen';

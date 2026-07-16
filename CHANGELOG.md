@@ -55,7 +55,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   setting). Renders from its own templates (`plotcp_current_plots`,
   `plotcp_current_plot_bit`) so it can be styled, and can be placed in any
   top-level template **or** inside a forum/category description (board index) by
-  writing the literal token `{$plotcp_current_plots}` there.
+  writing the literal token `{$plotcp_current_plots}` there. When the months are
+  configured but no plot overlaps them, a short "nothing right now" notice
+  (`.plotcp_current_plots_empty`) is shown instead of an empty box.
 
 ### Changed
 

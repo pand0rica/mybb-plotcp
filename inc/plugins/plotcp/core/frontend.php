@@ -683,25 +683,35 @@ class Plotcp_Frontend
     /**
      * Builds {$plotcp_current_plots}: published plots whose inplay range
      * overlaps the configured current inplay months, rendered through the
-     * plotcp_current_* templates. Empty string when there is nothing to show.
-     * The month texts of these months come from the rpgcalendar plugin.
+     * plotcp_current_* templates. Empty string when no inplay months are
+     * configured; when they are configured but no plot overlaps them, a
+     * "nothing right now" notice is shown instead. The month texts of these
+     * months come from the rpgcalendar plugin.
      */
     public static function buildCurrentPlots(): string
     {
-        global $templates;
+        global $lang, $templates;
 
-        $plots = Plotcp_Database::getPlotsForInplayMonths(Plotcp_Database::currentInplayMonths());
-        if (!$plots) {
+        $months = Plotcp_Database::currentInplayMonths();
+        if (!$months) {
             return '';
         }
 
-        $plot_items = '';
-        foreach ($plots as $p) {
-            $plot_link   = 'plotcp.php?action=view&amp;pid=' . (int)$p['pid'];
-            $plot_title  = htmlspecialchars_uni((string)$p['title']);
-            $plot_badges = self::badges($p);
-            $plot_date   = self::formatDateRange($p);
-            eval('$plot_items .= "' . $templates->get('plotcp_current_plot_bit') . '";');
+        $plots = Plotcp_Database::getPlotsForInplayMonths($months);
+
+        if (!$plots) {
+            // period configured but empty → tell the reader, don't vanish
+            $plot_items = '<div class="plotcp_current_plots_empty">'
+                . htmlspecialchars_uni($lang->plotcp_current_plots_empty) . '</div>';
+        } else {
+            $plot_items = '';
+            foreach ($plots as $p) {
+                $plot_link   = 'plotcp.php?action=view&amp;pid=' . (int)$p['pid'];
+                $plot_title  = htmlspecialchars_uni((string)$p['title']);
+                $plot_badges = self::badges($p);
+                $plot_date   = self::formatDateRange($p);
+                eval('$plot_items .= "' . $templates->get('plotcp_current_plot_bit') . '";');
+            }
         }
 
         eval('$plots_out = "' . $templates->get('plotcp_current_plots') . '";');

@@ -63,7 +63,9 @@ Class/core split (like rpgcalendar/Blacklist):
   same icons/classes as logbook's `forumdisplay_thread_end`). `renderGroups(gid)`
   shows a clicked group's member list (team gets a per-member remove button →
   `remove_group_member` POST). `buildCurrentPlots()` renders the
-  `{$plotcp_current_plots}` global; `buildRandomPlot()` renders the
+  `{$plotcp_current_plots}` global (returns '' when no inplay months are set;
+  shows a `.plotcp_current_plots_empty` notice when months are set but no plot
+  overlaps them); `buildRandomPlot()` renders the
   `{$plotcp_random_plot}` global (see hooks below). `renderEditForm($plot)` is
   the frontend full-edit form (pre-filled; posts to `do_edit`), gated by
   `canEditPlot`; the edit button sits in the plot detail action bar next to the

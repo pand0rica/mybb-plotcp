@@ -208,6 +208,10 @@ whose in-play range overlaps the **Current inplay months** (set under ACP →
 Configuration → Settings → Plot Control Panel, e.g. `1487-3, 1487-4`). When the
 setting is empty the variable stays empty and no queries run.
 
+If the months are configured but no plot currently overlaps them, the variable
+shows a short notice (styled via `.plotcp_current_plots_empty`) instead of being
+empty. It only stays fully empty when no *Current inplay months* are set at all.
+
 You can use it in two ways:
 
 1. **In a template:** place `{$plotcp_current_plots}` in any top-level template
