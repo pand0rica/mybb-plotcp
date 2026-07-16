@@ -11,9 +11,7 @@ define('IN_MYBB', 1);
 define('THIS_SCRIPT', 'plotcp.php');
 
 $templatelist = 'plotcp_browse,plotcp_browse_body,plotcp_browse_nav,plotcp_detail,plotcp_index_empty,'
-    . 'plotcp_view_scene_bit,plotcp_view_teambar,plotcp_groups,plotcp_groups_bit,'
-    . 'plotcp_groups_pending_bit,plotcp_groups_members,plotcp_groups_member_bit,'
-    . 'plotcp_groups_propose,plotcp_submit_form,plotcp_edit_form,plotcp_random_plot';
+    . 'plotcp_view_scene_bit,plotcp_view_teambar,plotcp_submit_form,plotcp_edit_form,plotcp_random_plot';
 
 require_once './global.php';
 
@@ -36,8 +34,7 @@ $action = $mybb->get_input('action');
  * POST actions
  * ---------------------------------------------------------------------- */
 
-$post_actions = ['do_submit', 'do_edit', 'submit_group', 'join_group', 'leave_group',
-                 'remove_group_member', 'publish', 'link_thread', 'unlink_thread'];
+$post_actions = ['do_submit', 'do_edit', 'publish', 'link_thread', 'unlink_thread'];
 
 if (in_array($action, $post_actions, true)) {
     if ($mybb->request_method !== 'post') {
@@ -69,7 +66,7 @@ switch ($action) {
             error($lang->plotcp_error_invalid_category);
         }
 
-        $gids = Plotcp_Database::filterApprovedGids($mybb->get_input('gids', MyBB::INPUT_ARRAY));
+        $gids = Plotcp_Groups::filterApprovedGids($mybb->get_input('gids', MyBB::INPUT_ARRAY));
 
         $contacts = Plotcp_Database::parseContactInput((string)$mybb->get_input('contacts'));
         if ($contacts['unknown']) {
@@ -126,7 +123,7 @@ switch ($action) {
             error($lang->plotcp_error_invalid_category);
         }
 
-        $gids = Plotcp_Database::filterApprovedGids($mybb->get_input('gids', MyBB::INPUT_ARRAY));
+        $gids = Plotcp_Groups::filterApprovedGids($mybb->get_input('gids', MyBB::INPUT_ARRAY));
 
         $contacts = Plotcp_Database::parseContactInput((string)$mybb->get_input('contacts'));
         if ($contacts['unknown']) {
@@ -160,78 +157,6 @@ switch ($action) {
         }
 
         redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_plot_updated);
-        break;
-
-    /* ---- group proposal ------------------------------------------------ */
-    case 'submit_group':
-        if (!isset($mybb->settings['plotcp_allow_group_submissions'])
-            || (int)$mybb->settings['plotcp_allow_group_submissions'] !== 1
-        ) {
-            error($lang->plotcp_error_group_submissions_disabled);
-        }
-
-        $name = trim((string)$mybb->get_input('name'));
-        if ($name === '') {
-            error($lang->plotcp_error_group_name_missing);
-        }
-        if (Plotcp_Database::groupNameExists($name)) {
-            error($lang->plotcp_error_group_name_exists);
-        }
-
-        $gid = (int)$db->insert_query('plotcp_groups', [
-            'name'          => $db->escape_string($name),
-            'description'   => $db->escape_string(trim((string)$mybb->get_input('description'))),
-            'approved'      => 0,
-            'submitted_uid' => (int)$mybb->user['uid'],
-            'dateline'      => TIME_NOW,
-        ]);
-
-        // Point the team alert straight at the ModCP review page.
-        Plotcp_Alerts::sendSubmissionTeam('group', $name, 'modcp.php?action=plotcp_groups', $gid);
-
-        redirect('plotcp.php?action=groups', $lang->plotcp_group_submitted);
-        break;
-
-    /* ---- group membership ---------------------------------------------- */
-    case 'join_group':
-    case 'leave_group':
-        $gid   = (int)$mybb->get_input('gid', MyBB::INPUT_INT);
-        $group = Plotcp_Database::getGroup($gid);
-        if (!$group || (int)$group['approved'] !== 1) {
-            error($lang->plotcp_error_invalid_group);
-        }
-
-        $uid = (int)$mybb->user['uid'];
-        if ($action === 'join_group') {
-            // INSERT IGNORE + UNIQUE(gid, uid): double joins stay a no-op
-            $db->write_query('INSERT IGNORE INTO ' . TABLE_PREFIX . 'plotcp_group_members
-                (gid, uid, dateline) VALUES (' . $gid . ', ' . $uid . ', ' . TIME_NOW . ')');
-            redirect('plotcp.php?action=groups', $lang->plotcp_joined);
-        } else {
-            $db->delete_query('plotcp_group_members', 'gid = ' . $gid . ' AND uid = ' . $uid);
-            redirect('plotcp.php?action=groups', $lang->plotcp_left);
-        }
-        break;
-
-    /* ---- remove member from group (team) --------------------------------- */
-    case 'remove_group_member':
-        if (!Plotcp_Permissions::isTeam($mybb->user)) {
-            error_no_permission();
-        }
-
-        $gid   = (int)$mybb->get_input('gid', MyBB::INPUT_INT);
-        $group = Plotcp_Database::getGroup($gid);
-        if (!$group || (int)$group['approved'] !== 1) {
-            error($lang->plotcp_error_invalid_group);
-        }
-
-        $target_uid = (int)$mybb->get_input('uid', MyBB::INPUT_INT);
-        if ($target_uid <= 0) {
-            error($lang->plotcp_error_invalid_group);
-        }
-        $db->delete_query('plotcp_group_members', 'gid = ' . $gid . ' AND uid = ' . $target_uid);
-
-        redirect('plotcp.php?action=groups&gid=' . $gid . '#plotcp_members', $lang->plotcp_member_removed);
         break;
 
     /* ---- publish (team) -------------------------------------------------- */
@@ -344,12 +269,6 @@ switch ($action) {
         output_page(Plotcp_Frontend::renderSubmitForm());
         break;
 
-    case 'groups':
-        add_breadcrumb($lang->plotcp_groups_title);
-        output_page(Plotcp_Frontend::renderGroups(
-            (int)$mybb->get_input('gid', MyBB::INPUT_INT)
-        ));
-        break;
 
     default:
         output_page(Plotcp_Frontend::renderBrowse(

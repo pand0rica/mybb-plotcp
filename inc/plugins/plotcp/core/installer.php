@@ -52,17 +52,6 @@ class Plotcp_Installer
             PRIMARY KEY (`cid`)
         ) ENGINE=InnoDB{$collation};");
 
-        $db->query("CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "plotcp_groups` (
-            `gid`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
-            `name`          VARCHAR(120) NOT NULL DEFAULT '',
-            `description`   TEXT NOT NULL,
-            `approved`      TINYINT(1) NOT NULL DEFAULT 0,
-            `submitted_uid` INT UNSIGNED NOT NULL DEFAULT 0,
-            `display_order` INT NOT NULL DEFAULT 0,
-            `dateline`      INT UNSIGNED NOT NULL DEFAULT 0,
-            PRIMARY KEY (`gid`)
-        ) ENGINE=InnoDB{$collation};");
-
         $db->query("CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "plotcp_plots` (
             `pid`                INT UNSIGNED NOT NULL AUTO_INCREMENT,
             `cid`                INT UNSIGNED NOT NULL DEFAULT 0,
@@ -98,16 +87,6 @@ class Plotcp_Installer
             KEY `gid` (`gid`)
         ) ENGINE=InnoDB{$collation};");
 
-        $db->query("CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "plotcp_group_members` (
-            `id`       INT UNSIGNED NOT NULL AUTO_INCREMENT,
-            `gid`      INT UNSIGNED NOT NULL DEFAULT 0,
-            `uid`      INT UNSIGNED NOT NULL DEFAULT 0,
-            `dateline` INT UNSIGNED NOT NULL DEFAULT 0,
-            PRIMARY KEY (`id`),
-            UNIQUE KEY `gid_uid` (`gid`, `uid`),
-            KEY `uid` (`uid`)
-        ) ENGINE=InnoDB{$collation};");
-
         $db->query("CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "plotcp_plot_threads` (
             `id`       INT UNSIGNED NOT NULL AUTO_INCREMENT,
             `pid`      INT UNSIGNED NOT NULL DEFAULT 0,
@@ -140,6 +119,23 @@ class Plotcp_Installer
             $db->write_query("ALTER TABLE " . TABLE_PREFIX
                 . "plotcp_categories MODIFY `description` TEXT NOT NULL");
         }
+
+        // v1.2.0: plotting groups moved to the standalone plottinggroups plugin.
+        // Drop the old group tables ONLY once that plugin has adopted the data
+        // (its table exists) – so this is safe regardless of install order and
+        // never loses groups when plottinggroups is not installed yet. The plot
+        // link table plotcp_plot_groups stays here.
+        if ($db->table_exists('plottinggroups_groups')) {
+            if ($db->table_exists('plotcp_groups')) {
+                $db->drop_table('plotcp_groups');
+            }
+            if ($db->table_exists('plotcp_group_members')) {
+                $db->drop_table('plotcp_group_members');
+            }
+        }
+        // v1.2.0: the group-proposal toggle moved to plottinggroups – drop the
+        // now-orphaned setting so it stops showing in the plotcp settings group.
+        $db->delete_query('settings', "name = 'plotcp_allow_group_submissions'");
     }
 
     public static function dropTables(): void
@@ -184,11 +180,6 @@ class Plotcp_Installer
             'allow_plot_submissions' => [
                 'Allow plot submissions',
                 'Registered users may submit new plots via the frontend form. Submitted plots start as previews.',
-                'onoff', '1',
-            ],
-            'allow_group_submissions' => [
-                'Allow group proposals',
-                'Registered users may propose new plotting groups via the frontend form. Proposals require team approval.',
                 'onoff', '1',
             ],
             'current_inplay' => [

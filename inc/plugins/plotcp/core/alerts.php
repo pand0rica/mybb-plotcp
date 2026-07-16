@@ -102,24 +102,16 @@ class Plotcp_Alerts
      */
     public static function sendPlotPublished(array $plot, array $notify_gids, array $already_gids = []): int
     {
-        $uids = Plotcp_Database::getGroupMemberUids($notify_gids);
+        // group memberships live in the optional plottinggroups plugin (bridge)
+        $uids = Plotcp_Groups::memberUids($notify_gids);
         if ($already_gids) {
-            $uids = array_values(array_diff($uids, Plotcp_Database::getGroupMemberUids($already_gids)));
+            $uids = array_values(array_diff($uids, Plotcp_Groups::memberUids($already_gids)));
         }
 
         return self::send('plotcp_plot_published', $uids, [
             'plot_title' => (string)$plot['title'],
             'link'       => 'plotcp.php?action=view&pid=' . (int)$plot['pid'],
         ], (int)$plot['pid']);
-    }
-
-    /** New-group alert to every active main account (see getMainAccountUids). */
-    public static function sendNewGroup(array $group): int
-    {
-        return self::send('plotcp_new_group', Plotcp_Database::getMainAccountUids(), [
-            'group_name' => (string)$group['name'],
-            'link'       => 'plotcp.php?action=groups',
-        ], (int)$group['gid']);
     }
 
     /**

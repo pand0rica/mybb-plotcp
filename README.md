@@ -1,9 +1,11 @@
 # Plot Control Panel (plotcp)
 
 A MyBB 1.8 plugin for RPG forums that manages plots in one central place: plot
-categories, plotting groups with self-service membership, a preview/publish
-workflow with MyAlerts notifications, user submissions, scene linking for
-inplay threads and automatic RPG Calendar integration.
+categories, a preview/publish workflow with MyAlerts notifications, user
+submissions, scene linking for inplay threads and automatic RPG Calendar
+integration. Plots can be linked to **plotting groups** when the separate
+[Plotting Groups](https://github.com/pand0rica/plottinggroups) plugin is
+installed.
 
 ## Features
 
@@ -11,23 +13,19 @@ inplay threads and automatic RPG Calendar integration.
   Blackboard) managed in the ACP; on the frontend each category is a tab, with
   a plot navigation on the left (grouped by inplay year, newest first) and the
   selected plot shown on the right
-- **Plotting groups**: users join and leave groups themselves; every plot can
-  be linked to any number of groups
+- **Plotting groups (optional)**: with the separate
+  [Plotting Groups](https://github.com/pand0rica/plottinggroups) plugin
+  installed, every plot can be linked to any number of groups (badges on the
+  plot page, checkboxes in the plot forms) and publishing alerts the members of
+  the linked groups. Without that plugin, plotcp simply shows no group features.
 - **Preview / publish workflow**: new plots start as previews that only
   configured groups (plus the team and the submitter) can see; publishing
-  sends a MyAlerts notification to all members of the linked groups
-- **User submissions**: users can submit plots (start as preview) and propose
-  new plotting groups (require team approval; approval notifies all main
-  accounts)
-- **ModCP group review**: the team approves, edits or rejects group proposals
-  right in the Moderator CP – no ACP access required – and gets a hint on the
-  board index while proposals are waiting
+  sends a MyAlerts notification to all members of the linked plotting groups
+- **User submissions**: users can submit plots (they start as previews)
 - **Scene linking**: in configured inplay/archive forums, the thread starter
   and the team can link a thread to a plot; the plot page lists all linked
   scenes, showing each scene's participants, location and in-play date from the
   [Logbook](https://github.com/pand0rica/logbook) plugin when it is installed
-- **Group members**: on the groups page a plotting group can be clicked to see
-  its members; the team can remove a member from a group
 - **Current plots variable**: a global template variable `{$plotcp_current_plots}`
   lists the published plots of the current in-play months (a setting), usable in
   any template **and** inside forum/category descriptions
@@ -45,6 +43,9 @@ inplay threads and automatic RPG Calendar integration.
 - PHP 7.4 or newer (tested up to PHP 8.1)
 - **Optional:** [MyAlerts](https://community.mybb.com/mods.php?action=view&pid=avau1249) –
   without it the plugin works normally, just without notifications
+- **Optional:** [Plotting Groups](https://github.com/pand0rica/plottinggroups) –
+  required for the group features (linking plots to groups, group badges, publish
+  alerts to group members); without it plotcp works without any group features
 - **Optional:** RPG Calendar (rpgcalendar) ≥ 1.0.0 – dated plots then appear
   in the calendar; without it nothing happens
 - **Optional:** EnhancedAccountSwitcher – "new group" alerts then go to main
@@ -73,11 +74,10 @@ No other dependencies.
 | Setting | Meaning |
 |---|---|
 | **Preview visibility groups** | User groups that can see unpublished plots (previews). Team groups and the submitter of a plot always see it. |
-| **Team groups** | Groups that may publish plots, approve group proposals and manage scene links on any thread. They also receive submission alerts. |
+| **Team groups** | Groups that may publish plots and manage scene links on any thread. They also receive plot-submission alerts. |
 | **Inplay forums** | Forums in which the plot link box is shown below threads. |
 | **Archive forums** | Additional (archived) forums with the plot link box. |
 | **Allow plot submissions** | Users may submit new plots via the frontend form. |
-| **Allow group proposals** | Users may propose new plotting groups (team approval required). |
 | **Current inplay months** | One or more in-play months as `year-month`, comma separated (e.g. `1487-3, 1487-4`). Drives the `{$plotcp_current_plots}` variable. Empty = variable disabled. |
 | **Random plot** | Drives the `{$plotcp_random_plot}` variable: `Disabled`, `All published plots`, or `Only plots in the current inplay months`. |
 | **Random plot categories** | Checkboxes of your plot categories the random plot may come from. Select none for all categories. |
@@ -89,9 +89,9 @@ No other dependencies.
 1. **Create categories:** ACP → Tools & Maintenance → Plot Control Panel →
    tab **Categories** → enter name, description and order → **Save**. At
    least one category is required before plots can be created.
-2. **Create plotting groups:** tab **Plotting groups** → enter name and
-   description → **Save**. Groups created in the ACP are approved immediately
-   (and announced via alert).
+2. **Plotting groups (optional):** install the
+   [Plotting Groups](https://github.com/pand0rica/plottinggroups) plugin to be
+   able to link plots to groups. It manages all group creation/approval itself.
 3. **Configure settings:** ACP → Configuration → Settings → Plot Control
    Panel → set team groups, preview groups and the inplay/archive forums.
 
@@ -119,41 +119,12 @@ No other dependencies.
 
 ![ACP plot list](docs/screenshots/acp-plots.png)
 
-### Plotting groups (users)
+### Plotting groups
 
-- Frontend page `plotcp.php` → **Plotting groups**: every approved group is
-  listed with description and member count. **Join** and **Leave** are single
-  clicks.
-- **See members:** click a group name to list its members (with the date they
-  joined) below the table.
-- **Remove a member (team):** in that member list, team members get a
-  **Remove** button next to each member to take someone out of the group.
-- **Propose a group:** the form below the list creates a proposal that waits
-  for team approval. On approval every main account receives an alert (users
-  can disable this in their alert settings).
-
-![Groups page](docs/screenshots/groups.png)
-
-### Reviewing group proposals (team)
-
-Team members (groups set under **Team groups** who also have Moderator CP
-access) get two ways to handle a new group proposal:
-
-1. **Board index notice:** while proposals are waiting, a hint appears on the
-   forum index with a link to the review page.
-2. **ModCP:** **Moderator CP → Plot Control Panel → Plotting groups** (also
-   reachable from the "new group proposed" alert). The overview lists waiting
-   proposals (with the submitter) and approved groups. Per group:
-   - **Approve** – publishes the group; all main accounts get the "new group"
-     alert and users can join it.
-   - **Edit** – change name, description and display order.
-   - **Reject** (proposals) / **Delete** (approved groups) – removes the group
-     permanently, including memberships and plot links.
-
-The same actions remain available in the ACP (ACP → Plot Control Panel →
-Plotting groups) for admins.
-
-![ModCP group review](docs/screenshots/modcp-groups.png)
+Group creation, joining/leaving, proposals and the team review now live in the
+separate [Plotting Groups](https://github.com/pand0rica/plottinggroups) plugin.
+When it is installed, plotcp lets you link plots to those groups (checkboxes in
+the plot forms, badges on the plot page) and alerts the group members on publish.
 
 ### Submitting plots (users)
 
@@ -191,8 +162,10 @@ Every user can control the plugin's notifications under
 **User CP → Edit Alert Settings**:
 
 - *A plot is published for one of my plotting groups*
-- *A new plotting group is created*
-- *A user submits a new plot or plotting group* (relevant for the team)
+- *A user submits a new plot* (relevant for the team)
+
+(Group-related alerts – new group, proposals, group tags – belong to the
+[Plotting Groups](https://github.com/pand0rica/plottinggroups) plugin.)
 
 ### RPG Calendar
 
@@ -263,8 +236,9 @@ plot list.
 1. ACP → Configuration → Plugins → **Deactivate** "Plot Control Panel"
    (removes templates, settings, stylesheet, alert types and the showthread
    template injection).
-2. Click **Uninstall** to drop the six database tables. All plot data is
-   deleted permanently.
+2. Click **Uninstall** to drop the plugin's database tables (categories, plots,
+   plot↔group links and plot↔thread links). All plot data is deleted
+   permanently. Plotting groups themselves belong to the Plotting Groups plugin.
 3. Delete the uploaded files.
 
 ## Changelog

@@ -26,8 +26,6 @@ $plugins->add_hook('newthread_do_newthread_end',     'plotcp_handle_newthread_sa
 $plugins->add_hook('forumdisplay_thread',            'plotcp_handle_forumdisplay_thread');
 $plugins->add_hook('rpgcalendar_collect_events',     'plotcp_rpgcalendar_collect');
 $plugins->add_hook('class_moderation_delete_thread', 'plotcp_handle_thread_delete');
-$plugins->add_hook('index_start',                    'plotcp_handle_index_notice');
-$plugins->add_hook('modcp_start',                    'plotcp_handle_modcp');
 $plugins->add_hook('admin_tools_menu',               'plotcp_admin_menu');
 $plugins->add_hook('admin_tools_action_handler',     'plotcp_admin_action');
 
@@ -68,8 +66,10 @@ function plotcp_activate(): void
     Plotcp_Installer::installStylesheet();
     Plotcp_Installer::registerAlertTypes();
     Plotcp_Installer::injectSceneBox();
-    Plotcp_Installer::injectIndexNotice();
-    Plotcp_Installer::injectModcpNav();
+    // Group management moved to the plottinggroups plugin: strip the old group
+    // notice / ModCP nav injections if an earlier plotcp version added them.
+    Plotcp_Installer::removeIndexNoticeInjection();
+    Plotcp_Installer::removeModcpNavInjection();
 }
 
 function plotcp_deactivate(): void
@@ -104,6 +104,7 @@ function plotcp_load_core(): void
     require_once MYBB_ROOT . 'inc/plugins/plotcp/core/database.php';
     require_once MYBB_ROOT . 'inc/plugins/plotcp/core/permissions.php';
     require_once MYBB_ROOT . 'inc/plugins/plotcp/core/alerts.php';
+    require_once MYBB_ROOT . 'inc/plugins/plotcp/core/groups.php';
     $loaded = true;
 }
 
@@ -115,7 +116,6 @@ function plotcp_alert_codes(): array
 {
     return [
         'plotcp_plot_published',
-        'plotcp_new_group',
         'plotcp_submission_team',
     ];
 }
@@ -383,56 +383,6 @@ function plotcp_handle_thread_delete($tid)
     }
 
     return $tid;
-}
-
-/**
- * Board index notice ({$plotcp_group_notice}, injected after {$header}).
- * Shown only to team members and only while group proposals are waiting, so
- * the team is reminded to review them even without checking their alerts.
- */
-function plotcp_handle_index_notice(): void
-{
-    global $mybb, $plotcp_group_notice;
-
-    $plotcp_group_notice = '';
-
-    plotcp_load_core();
-    if (!Plotcp_Permissions::isTeam($mybb->user)) {
-        return;
-    }
-
-    $count = Plotcp_Database::getPendingGroupCount();
-    if ($count <= 0) {
-        return;
-    }
-
-    require_once MYBB_ROOT . 'inc/plugins/plotcp/core/modcp.php';
-    $plotcp_group_notice = Plotcp_Modcp::buildIndexNotice($count);
-}
-
-/**
- * ModCP integration: sets the navigation entry ({$plotcp_modcp_nav}) for every
- * ModCP page of a team member and, for our own action, renders the group
- * review page and stops. MyBB's modcp.php already restricted access to
- * canmodcp users; isTeam() narrows that to the plot team.
- */
-function plotcp_handle_modcp(): void
-{
-    global $mybb, $plotcp_modcp_nav;
-
-    $plotcp_modcp_nav = '';
-
-    plotcp_load_core();
-    if (!Plotcp_Permissions::isTeam($mybb->user)) {
-        return;
-    }
-
-    require_once MYBB_ROOT . 'inc/plugins/plotcp/core/modcp.php';
-    $plotcp_modcp_nav = Plotcp_Modcp::navItem();
-
-    if ($mybb->get_input('action') === Plotcp_Modcp::ACTION) {
-        Plotcp_Modcp::handle();
-    }
 }
 
 function plotcp_admin_menu(array &$sub_menu): void

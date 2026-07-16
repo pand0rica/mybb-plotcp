@@ -5,6 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [1.1.0] – Unreleased
 
+### Changed
+
+- **Plotting groups moved to the separate [Plotting Groups](https://github.com/pand0rica/plottinggroups)
+  (plottinggroups) plugin.** The Plot Control Panel no longer manages groups
+  itself – the groups page, the ModCP proposal review, the ACP groups tab and
+  the group-proposal form/actions are gone, along with the `Allow group
+  proposals` setting and the `plotcp_new_group` alert. Instead plotcp binds
+  groups through the plottinggroups API (via a `Plotcp_Groups` bridge, guarded by
+  `class_exists`): plot group badges, the group checkboxes in the plot forms and
+  the publish alert to group members all keep working when plottinggroups is
+  installed, and are simply hidden when it is not.
+- The `plotcp_plot_groups` link table stays (plot↔group association). The old
+  `plotcp_groups` / `plotcp_group_members` tables are dropped automatically on
+  activation **once plottinggroups exists** (so it is safe regardless of order –
+  activate plottinggroups first, it adopts the data preserving IDs). Fresh
+  installs no longer create those two tables.
+
 ### Fixed
 
 - Browse navigation: the active plot was marked with the theme class

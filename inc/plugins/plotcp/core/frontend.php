@@ -152,8 +152,14 @@ class Plotcp_Frontend
                 . htmlspecialchars_uni($lang->plotcp_no_plots) . '</td></tr></table>';
         }
 
-        // toolbar (submit / groups)
-        $toolbar = ['<a href="plotcp.php?action=groups">' . htmlspecialchars_uni($lang->plotcp_btn_groups) . '</a>'];
+        // toolbar (submit / groups). The groups link only appears when the
+        // optional plottinggroups plugin is installed.
+        $toolbar = [];
+        $groups_url = Plotcp_Groups::groupsUrl();
+        if ($groups_url !== '') {
+            $toolbar[] = '<a href="' . htmlspecialchars_uni($groups_url) . '">'
+                . htmlspecialchars_uni($lang->plotcp_btn_groups) . '</a>';
+        }
         if ((int)$mybb->user['uid'] > 0
             && isset($mybb->settings['plotcp_allow_plot_submissions'])
             && (int)$mybb->settings['plotcp_allow_plot_submissions'] === 1
@@ -207,7 +213,9 @@ class Plotcp_Frontend
         $category      = Plotcp_Database::getCategory((int)$plot['cid']);
         $category_name = $category ? htmlspecialchars_uni((string)$category['name']) : '&ndash;';
 
-        $plot_groups = self::groupBadges(self::groupNamesForPlot($pid));
+        // group names come from the optional plottinggroups plugin (via bridge)
+        $plot_groups = self::groupBadges(array_values(
+            Plotcp_Groups::groupNames(Plotcp_Database::getPlotGids($pid))));
 
         $plot_location = $plot['location'] !== '' ? htmlspecialchars_uni((string)$plot['location']) : '&ndash;';
         $plot_date     = self::formatDateRange($plot);
@@ -376,98 +384,6 @@ class Plotcp_Frontend
     }
 
     /* ---------------------------------------------------------------------
-     * Groups page (join/leave, propose form)
-     * ------------------------------------------------------------------ */
-
-    public static function renderGroups(int $selected_gid = 0): string
-    {
-        global $mybb, $lang, $templates, $theme, $header, $headerinclude, $footer;
-
-        $uid       = (int)$mybb->user['uid'];
-        $is_team   = Plotcp_Permissions::isTeam($mybb->user);
-        $counts    = Plotcp_Database::getGroupMemberCounts();
-        $user_gids = $uid > 0 ? Plotcp_Database::getUserGroupIds($uid) : [];
-
-        $group_rows = '';
-        $altbg = 'trow1';
-        foreach (Plotcp_Database::getGroups(false) as $gid => $group) {
-            $pending = (int)$group['approved'] === 0;
-
-            // pending proposals are only visible to team and their submitter
-            if ($pending && !$is_team && (int)$group['submitted_uid'] !== $uid) {
-                continue;
-            }
-
-            $group_description = htmlspecialchars_uni((string)$group['description']);
-
-            if ($pending) {
-                // pending groups have no members yet, so no link
-                $group_name = htmlspecialchars_uni((string)$group['name']);
-                eval('$group_rows .= "' . $templates->get('plotcp_groups_pending_bit') . '";');
-            } else {
-                // approved group names link to their member list below
-                $group_name = '<a href="plotcp.php?action=groups&amp;gid=' . (int)$gid
-                    . '#plotcp_members">' . htmlspecialchars_uni((string)$group['name']) . '</a>';
-                $group_row_bg      = ((int)$gid === $selected_gid) ? 'trow_shaded' : $altbg;
-                $member_count      = isset($counts[$gid]) ? (int)$counts[$gid] : 0;
-                $membership_button = $uid > 0
-                    ? self::membershipButton((int)$gid, in_array((int)$gid, $user_gids, true))
-                    : '&nbsp;';
-                eval('$group_rows .= "' . $templates->get('plotcp_groups_bit') . '";');
-            }
-            $altbg = $altbg === 'trow1' ? 'trow2' : 'trow1';
-        }
-        if ($group_rows === '') {
-            $group_rows = '<tr><td class="trow1" colspan="4" align="center">'
-                . htmlspecialchars_uni($lang->plotcp_no_groups) . '</td></tr>';
-        }
-
-        // member list of the selected group (approved groups only; anyone who
-        // can see the page may see who is in a group, like the member counts)
-        $members_panel = '';
-        if ($selected_gid > 0) {
-            $sel_group = Plotcp_Database::getGroup($selected_gid);
-            if ($sel_group && (int)$sel_group['approved'] === 1) {
-                $members_title = $lang->sprintf($lang->plotcp_group_members_title,
-                    htmlspecialchars_uni((string)$sel_group['name']));
-
-                $member_rows = '';
-                $altbg = 'trow1';
-                foreach (Plotcp_Database::getGroupMembers($selected_gid) as $m) {
-                    $member_link = build_profile_link(
-                        format_name(htmlspecialchars_uni((string)$m['username']),
-                            $m['usergroup'], $m['displaygroup']),
-                        (int)$m['uid']);
-                    $member_joined = my_date($mybb->settings['dateformat'], (int)$m['dateline']);
-                    // team members can remove a person from the group
-                    $member_controls = $is_team
-                        ? self::removeMemberForm($selected_gid, (int)$m['uid'])
-                        : '&nbsp;';
-                    eval('$member_rows .= "' . $templates->get('plotcp_groups_member_bit') . '";');
-                    $altbg = $altbg === 'trow1' ? 'trow2' : 'trow1';
-                }
-                if ($member_rows === '') {
-                    $member_rows = '<tr><td class="trow1" colspan="3">'
-                        . htmlspecialchars_uni($lang->plotcp_group_no_members) . '</td></tr>';
-                }
-                eval('$members_panel = "' . $templates->get('plotcp_groups_members') . '";');
-            }
-        }
-
-        $propose_form = '';
-        if ($uid > 0
-            && isset($mybb->settings['plotcp_allow_group_submissions'])
-            && (int)$mybb->settings['plotcp_allow_group_submissions'] === 1
-        ) {
-            eval('$propose_form = "' . $templates->get('plotcp_groups_propose') . '";');
-        }
-
-        eval('$html = "' . $templates->get('plotcp_groups') . '";');
-
-        return $html;
-    }
-
-    /* ---------------------------------------------------------------------
      * Plot submission form
      * ------------------------------------------------------------------ */
 
@@ -482,9 +398,9 @@ class Plotcp_Frontend
         }
 
         $group_checkboxes = '';
-        foreach (Plotcp_Database::getGroups(true) as $gid => $group) {
+        foreach (Plotcp_Groups::approvedGroups() as $gid => $group_name) {
             $group_checkboxes .= '<label><input type="checkbox" name="gids[]" value="' . (int)$gid . '" /> '
-                . htmlspecialchars_uni((string)$group['name']) . '</label>';
+                . htmlspecialchars_uni((string)$group_name) . '</label>';
         }
         if ($group_checkboxes === '') {
             $group_checkboxes = htmlspecialchars_uni($lang->plotcp_no_groups);
@@ -521,10 +437,10 @@ class Plotcp_Frontend
 
         $plot_gids = Plotcp_Database::getPlotGids($plot_id);
         $group_checkboxes = '';
-        foreach (Plotcp_Database::getGroups(true) as $gid => $group) {
+        foreach (Plotcp_Groups::approvedGroups() as $gid => $group_name) {
             $chk = in_array((int)$gid, $plot_gids, true) ? ' checked="checked"' : '';
             $group_checkboxes .= '<label><input type="checkbox" name="gids[]" value="' . (int)$gid . '"' . $chk . ' /> '
-                . htmlspecialchars_uni((string)$group['name']) . '</label>';
+                . htmlspecialchars_uni((string)$group_name) . '</label>';
         }
         if ($group_checkboxes === '') {
             $group_checkboxes = htmlspecialchars_uni($lang->plotcp_no_groups);
@@ -813,39 +729,6 @@ class Plotcp_Frontend
         return implode(' ', $badges);
     }
 
-    /** @return array pid => group name list (one query for all pids) */
-    private static function groupNamesForPlots(array $pids): array
-    {
-        global $db;
-
-        $pids = array_values(array_unique(array_filter(array_map('intval', $pids),
-            function ($pid) { return $pid > 0; })));
-        if (!$pids) {
-            return [];
-        }
-
-        $names = [];
-        $query = $db->query('
-            SELECT pg.pid, g.name
-            FROM ' . TABLE_PREFIX . 'plotcp_plot_groups pg
-            INNER JOIN ' . TABLE_PREFIX . 'plotcp_groups g ON (g.gid = pg.gid)
-            WHERE pg.pid IN (' . implode(',', $pids) . ')
-            ORDER BY g.name ASC
-        ');
-        while ($row = $db->fetch_array($query)) {
-            $names[(int)$row['pid']][] = (string)$row['name'];
-        }
-
-        return $names;
-    }
-
-    private static function groupNamesForPlot(int $pid): array
-    {
-        $names = self::groupNamesForPlots([$pid]);
-
-        return isset($names[$pid]) ? $names[$pid] : [];
-    }
-
     private static function parseDescription(string $text): string
     {
         global $parser;
@@ -865,22 +748,6 @@ class Plotcp_Frontend
             'allow_imgcode'   => 1,
             'filter_badwords' => 1,
         ]);
-    }
-
-    private static function membershipButton(int $gid, bool $is_member): string
-    {
-        global $mybb, $lang;
-
-        $action = $is_member ? 'leave_group' : 'join_group';
-        $label  = $is_member ? $lang->plotcp_btn_leave : $lang->plotcp_btn_join;
-
-        return '<form action="plotcp.php" method="post" class="plotcp_inline_form">'
-            . '<input type="hidden" name="action" value="' . $action . '" />'
-            . '<input type="hidden" name="gid" value="' . $gid . '" />'
-            . '<input type="hidden" name="my_post_key" value="' . $mybb->post_code . '" />'
-            . '<input type="submit" class="button plotcp_button_small" value="'
-            . htmlspecialchars_uni($label) . '" />'
-            . '</form>';
     }
 
     private static function teamButtons(array $plot): string
@@ -921,19 +788,4 @@ class Plotcp_Frontend
             . '</form>';
     }
 
-    /** Team-only button to remove a member from a plotting group. */
-    private static function removeMemberForm(int $gid, int $uid): string
-    {
-        global $mybb, $lang;
-
-        return '<form action="plotcp.php" method="post" class="plotcp_inline_form" '
-            . 'onsubmit="return confirm(\'' . addslashes($lang->plotcp_confirm_remove_member) . '\');">'
-            . '<input type="hidden" name="action" value="remove_group_member" />'
-            . '<input type="hidden" name="gid" value="' . $gid . '" />'
-            . '<input type="hidden" name="uid" value="' . $uid . '" />'
-            . '<input type="hidden" name="my_post_key" value="' . $mybb->post_code . '" />'
-            . '<input type="submit" class="button plotcp_button_small" value="'
-            . htmlspecialchars_uni($lang->plotcp_btn_remove_member) . '" />'
-            . '</form>';
-    }
 }

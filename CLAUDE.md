@@ -3,9 +3,11 @@
 ## Purpose
 
 MyBB 1.8 plugin: central plot management for RPG forums. Plot categories,
-plotting groups (self-service membership), preview→publish workflow with
-MyAlerts notifications, user submissions (plots + group proposals with team
-approval), scene linking for inplay threads, RPG Calendar provider.
+preview→publish workflow with MyAlerts notifications, user plot submissions,
+scene linking for inplay threads, RPG Calendar provider. Plotting **groups**
+themselves live in the separate `plottinggroups` plugin; plotcp only keeps the
+plot↔group link table and binds groups through `Plottinggroups_Api` (optional –
+see `core/groups.php`).
 
 ## Architecture
 
@@ -22,15 +24,15 @@ Class/core split (like rpgcalendar/Blacklist):
   `{$plotcp_group_notice}` after `{$header}` in index,
   `{$plotcp_modcp_nav}` before the final `</table>` in modcp_nav; each removal
   runs before its injection → idempotent)
-- `inc/plugins/plotcp/core/modcp.php` – `Plotcp_Modcp`: team-only ModCP page
-  for reviewing group proposals (approve/edit/reject; reject = delete) plus the
-  two injected fragments (`navItem()` → `{$plotcp_modcp_nav}`,
-  `buildIndexNotice()` → `{$plotcp_group_notice}`). Driven by the `modcp_start`
-  hook (sets nav for every ModCP page of a team member; renders + `exit`s for
-  `action=plotcp_groups`) and `index_start` (notice when proposals are
-  pending). Access = MyBB `canmodcp` gate ∩ `Plotcp_Permissions::isTeam`
-  (team = moderators). Uses only core theme classes, so no stylesheet attach is
-  needed on index/modcp. The ACP module keeps the same actions for admins.
+- `inc/plugins/plotcp/core/groups.php` – `Plotcp_Groups`: bridge to the optional
+  `plottinggroups` plugin. `available()` = `function_exists('plottinggroups_load_core')`
+  (installed AND active) → load_core → `class_exists('Plottinggroups_Api')`;
+  every method returns empty when unavailable. Wraps `approvedGroups`,
+  `groupNames`, `memberUids`, `filterApprovedGids`, `groupsUrl`. All plotcp group
+  consumers (detail badges, submit/edit/ACP checkboxes, `sendPlotPublished`
+  recipients, submitted-gid validation, toolbar link) go through this – so groups
+  are optional. (Group management itself – renderGroups, the ModCP review, the
+  ACP groups tab, proposals – was removed and now lives in `plottinggroups`.)
 - `inc/plugins/plotcp/core/database.php` – `Plotcp_Database`: all CRUD,
   calendar math + date validation, group diff (`setPlotGroups`), alert
   recipient queries (group members, team, main accounts). Also: Logbook scene
@@ -103,22 +105,22 @@ Class/core split (like rpgcalendar/Blacklist):
 
 ## Tables
 
-`plotcp_categories`, `plotcp_groups` (`approved` 0 = pending proposal),
-`plotcp_plots` (`visible` 0 = preview, 1 = published – no archive flag; date
-columns + `start_key`/`end_key` = y*10000+m*100+d computed in PHP, index
-`(end_key, start_key)`), `plotcp_plot_groups` (UNIQUE pid,gid),
-`plotcp_group_members` (UNIQUE gid,uid), `plotcp_plot_threads` (UNIQUE tid –
-one plot per thread).
+`plotcp_categories`, `plotcp_plots` (`visible` 0 = preview, 1 = published – no
+archive flag; date columns + `start_key`/`end_key` = y*10000+m*100+d computed in
+PHP, index `(end_key, start_key)`), `plotcp_plot_groups` (UNIQUE pid,gid – its
+`gid` references `plottinggroups_groups`, kept here as the plot↔group link),
+`plotcp_plot_threads` (UNIQUE tid – one plot per thread). The former
+`plotcp_groups` / `plotcp_group_members` tables moved to `plottinggroups` and are
+dropped by `migrateSchema()` once `plottinggroups_groups` exists.
 
 ## Alert rules (do not change lightly)
 
-- `plotcp_plot_published`: on publish to DISTINCT members of linked groups;
+- `plotcp_plot_published`: on publish to DISTINCT members of linked groups
+  (recipients resolved via `Plotcp_Groups::memberUids`, i.e. plottinggroups);
   when groups are added to a published plot only `members(added) −
   members(kept)` – no double alerts.
-- `plotcp_new_group`: on approval to all main accounts (`as_uid = 0` if the
-  column exists, else all active users; banned/awaiting excluded).
-- `plotcp_submission_team`: to team group members; `kind` (plot|group) picks
-  the language string in the formatter.
+- `plotcp_submission_team`: to team group members on a plot submission (`kind` is
+  always `plot` now – the group-proposal alert moved to plottinggroups).
 - Extra details raw in DB, escaping ONLY in the formatter. Calendar titles
   raw too (rpgcalendar escapes on render).
 
