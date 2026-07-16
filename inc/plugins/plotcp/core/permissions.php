@@ -55,6 +55,26 @@ class Plotcp_Permissions
     }
 
     /**
+     * Who may edit a plot: the team may edit any plot; the submitter may edit
+     * their own plot while it is still a preview (visible = 0). Once published,
+     * only the team can edit it.
+     */
+    public static function canEditPlot(array $user, array $plot): bool
+    {
+        $uid = (int)(isset($user['uid']) ? $user['uid'] : 0);
+        if ($uid <= 0) {
+            return false;
+        }
+
+        if (self::isTeam($user)) {
+            return true;
+        }
+
+        return (int)(isset($plot['submitted_uid']) ? $plot['submitted_uid'] : 0) === $uid
+            && (int)(isset($plot['visible']) ? $plot['visible'] : 1) === 0;
+    }
+
+    /**
      * Preview plots (visible = 0) are shown to team groups, the configured
      * preview groups and the submitter of the plot.
      */

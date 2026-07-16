@@ -13,7 +13,7 @@ define('THIS_SCRIPT', 'plotcp.php');
 $templatelist = 'plotcp_browse,plotcp_browse_body,plotcp_browse_nav,plotcp_detail,plotcp_index_empty,'
     . 'plotcp_view_scene_bit,plotcp_view_teambar,plotcp_groups,plotcp_groups_bit,'
     . 'plotcp_groups_pending_bit,plotcp_groups_members,plotcp_groups_member_bit,'
-    . 'plotcp_groups_propose,plotcp_submit_form';
+    . 'plotcp_groups_propose,plotcp_submit_form,plotcp_edit_form';
 
 require_once './global.php';
 
@@ -36,7 +36,7 @@ $action = $mybb->get_input('action');
  * POST actions
  * ---------------------------------------------------------------------- */
 
-$post_actions = ['do_submit', 'submit_group', 'join_group', 'leave_group',
+$post_actions = ['do_submit', 'do_edit', 'submit_group', 'join_group', 'leave_group',
                  'remove_group_member', 'publish', 'link_thread', 'unlink_thread'];
 
 if (in_array($action, $post_actions, true)) {
@@ -103,6 +103,63 @@ switch ($action) {
         Plotcp_Alerts::sendSubmissionTeam('plot', $title, 'plotcp.php?action=view&pid=' . $pid, $pid);
 
         redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_plot_submitted);
+        break;
+
+    /* ---- full plot edit (team, or submitter of own preview) ------------- */
+    case 'do_edit':
+        $pid  = (int)$mybb->get_input('pid', MyBB::INPUT_INT);
+        $plot = Plotcp_Database::getPlot($pid);
+        if (!$plot) {
+            error($lang->plotcp_error_invalid_plot);
+        }
+        if (!Plotcp_Permissions::canEditPlot($mybb->user, $plot)) {
+            error_no_permission();
+        }
+
+        $title = trim((string)$mybb->get_input('title'));
+        if ($title === '') {
+            error($lang->plotcp_error_title_missing);
+        }
+
+        $cid = (int)$mybb->get_input('cid', MyBB::INPUT_INT);
+        if ($cid <= 0 || !Plotcp_Database::getCategory($cid)) {
+            error($lang->plotcp_error_invalid_category);
+        }
+
+        $gids = Plotcp_Database::filterApprovedGids($mybb->get_input('gids', MyBB::INPUT_ARRAY));
+
+        $contacts = Plotcp_Database::parseContactInput((string)$mybb->get_input('contacts'));
+        if ($contacts['unknown']) {
+            error($lang->sprintf($lang->plotcp_error_unknown_contacts,
+                htmlspecialchars_uni(implode(', ', $contacts['unknown']))));
+        }
+
+        $dates = Plotcp_Database::validateDates(true, [
+            'start_year' => $mybb->get_input('start_year'), 'start_month' => $mybb->get_input('start_month'),
+            'start_day'  => $mybb->get_input('start_day'),
+            'end_year'   => $mybb->get_input('end_year'),   'end_month'   => $mybb->get_input('end_month'),
+            'end_day'    => $mybb->get_input('end_day'),
+        ]);
+        if (!$dates['ok']) {
+            error($lang->{'plotcp_' . $dates['error']});
+        }
+
+        $db->update_query('plotcp_plots', array_merge([
+            'cid'         => $cid,
+            'title'       => $db->escape_string($title),
+            'location'    => $db->escape_string(trim((string)$mybb->get_input('location'))),
+            'contacts'    => $db->escape_string(implode(',', $contacts['uids'])),
+            'description' => $db->escape_string((string)$mybb->get_input('description')),
+        ], $dates['fields']), 'pid = ' . $pid);
+
+        // groups added to an already published plot alert only the new members
+        $diff = Plotcp_Database::setPlotGroups($pid, $gids);
+        if ((int)$plot['visible'] === 1 && $diff['added']) {
+            $plot['title'] = $title;
+            Plotcp_Alerts::sendPlotPublished($plot, $diff['added'], $diff['kept']);
+        }
+
+        redirect('plotcp.php?action=view&pid=' . $pid, $lang->plotcp_plot_updated);
         break;
 
     /* ---- group proposal ------------------------------------------------ */
@@ -252,6 +309,22 @@ switch ($action) {
 
         add_breadcrumb(htmlspecialchars_uni((string)$plot['title']));
         output_page(Plotcp_Frontend::renderBrowse((int)$plot['cid'], (int)$plot['pid']));
+        break;
+
+    case 'edit':
+        $pid  = (int)$mybb->get_input('pid', MyBB::INPUT_INT);
+        $plot = Plotcp_Database::getPlot($pid);
+        if (!$plot) {
+            error($lang->plotcp_error_invalid_plot);
+        }
+        if (!Plotcp_Permissions::canEditPlot($mybb->user, $plot)) {
+            error_no_permission();
+        }
+
+        add_breadcrumb(htmlspecialchars_uni((string)$plot['title']),
+            'plotcp.php?action=view&amp;pid=' . (int)$plot['pid']);
+        add_breadcrumb($lang->plotcp_edit_title);
+        output_page(Plotcp_Frontend::renderEditForm($plot));
         break;
 
     case 'submit':

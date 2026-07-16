@@ -17,6 +17,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### New
 
+- Full plot editing on the frontend: a plot page now has an **Edit** button for
+  the team (any plot) and for the submitter (their own plot while it is still a
+  preview). The pre-filled form edits title, category, plotting groups, location,
+  contact persons, description and the inplay dates (POST `do_edit`). Editing an
+  already published plot and adding a group alerts only the new members, exactly
+  like the ACP edit.
 - ModCP group review: plotting group proposals can now be approved, edited or
   rejected directly in the Moderator CP (**ModCP → Plot Control Panel →
   Plotting groups**), without ACP access. Access is limited to team groups

@@ -39,7 +39,8 @@ Class/core split (like rpgcalendar/Blacklist):
   (`currentInplayMonths` from the `plotcp_current_inplay` setting) + overlap
   query (`getPlotsForInplayMonths`, `visible = 1` only)
 - `inc/plugins/plotcp/core/permissions.php` – `Plotcp_Permissions`: isTeam,
-  canViewPreview (team ∪ preview_groups ∪ submitter), canLinkThread
+  canViewPreview (team ∪ preview_groups ∪ submitter), canEditPlot
+  (team any plot ∪ submitter of own plot while visible = 0), canLinkThread
   (starter ∨ team), isSceneForum; always checks usergroup AND additionalgroups
 - `inc/plugins/plotcp/core/alerts.php` – `Plotcp_Alerts`: best-effort MyAlerts
   (class_exists guards + try/catch). IMPORTANT: creates MyAlerts manager
@@ -61,7 +62,10 @@ Class/core split (like rpgcalendar/Blacklist):
   same icons/classes as logbook's `forumdisplay_thread_end`). `renderGroups(gid)`
   shows a clicked group's member list (team gets a per-member remove button →
   `remove_group_member` POST). `buildCurrentPlots()` renders the
-  `{$plotcp_current_plots}` global (see hooks below).
+  `{$plotcp_current_plots}` global (see hooks below). `renderEditForm($plot)` is
+  the frontend full-edit form (pre-filled; posts to `do_edit`), gated by
+  `canEditPlot`; the edit button sits in the plot detail action bar next to the
+  team publish button.
 - `inc/plugins/plotcp/myalerts_formatter.php` – one formatter per alert code;
   escapes EVERY extra-details value on render (extra details are stored raw)
 - `inc/plugins/plotcp/calendar_provider.php` – `rpgcalendar_collect_events`

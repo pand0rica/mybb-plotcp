@@ -26,6 +26,11 @@ $l['plotcp_view_scenes'] = 'Verknüpfte Szenen';
 $l['plotcp_view_no_scenes'] = 'Mit diesem Plot wurden noch keine Szenen verknüpft.';
 $l['plotcp_view_no_groups'] = 'Keine Plottinggruppen verknüpft.';
 $l['plotcp_btn_publish'] = 'Plot veröffentlichen';
+$l['plotcp_btn_edit'] = 'Plot bearbeiten';
+$l['plotcp_btn_save'] = 'Änderungen speichern';
+$l['plotcp_btn_cancel'] = 'Abbrechen';
+$l['plotcp_edit_title'] = 'Plot bearbeiten';
+$l['plotcp_plot_updated'] = 'Der Plot wurde aktualisiert.';
 $l['plotcp_submitted_by'] = 'Eingereicht von';
 
 // Gruppen-Seite

@@ -26,6 +26,11 @@ $l['plotcp_view_scenes'] = 'Linked scenes';
 $l['plotcp_view_no_scenes'] = 'No scenes have been linked to this plot yet.';
 $l['plotcp_view_no_groups'] = 'No plotting groups linked.';
 $l['plotcp_btn_publish'] = 'Publish plot';
+$l['plotcp_btn_edit'] = 'Edit plot';
+$l['plotcp_btn_save'] = 'Save changes';
+$l['plotcp_btn_cancel'] = 'Cancel';
+$l['plotcp_edit_title'] = 'Edit plot';
+$l['plotcp_plot_updated'] = 'The plot has been updated.';
 $l['plotcp_submitted_by'] = 'Submitted by';
 
 // Groups page

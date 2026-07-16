@@ -230,13 +230,22 @@ class Plotcp_Frontend
 
         $plot_description = self::parseDescription((string)$plot['description']);
 
-        // team button (publish)
-        $teambar = '';
+        // action bar: edit (team or the submitter of an own preview) + publish (team)
+        $action_buttons = [];
+        if (Plotcp_Permissions::canEditPlot($mybb->user, $plot)) {
+            $action_buttons[] = '<a href="plotcp.php?action=edit&amp;pid=' . $pid
+                . '" class="button">' . htmlspecialchars_uni($lang->plotcp_btn_edit) . '</a>';
+        }
         if (Plotcp_Permissions::isTeam($mybb->user)) {
-            $team_buttons = self::teamButtons($plot);
-            if ($team_buttons !== '') {
-                eval('$teambar = "' . $templates->get('plotcp_view_teambar') . '";');
+            $team_only = self::teamButtons($plot);
+            if ($team_only !== '') {
+                $action_buttons[] = $team_only;
             }
+        }
+        $teambar = '';
+        if ($action_buttons) {
+            $team_buttons = implode(' ', $action_buttons);
+            eval('$teambar = "' . $templates->get('plotcp_view_teambar') . '";');
         }
 
         // linked scenes (threads); silently skip rows whose thread vanished
@@ -486,6 +495,72 @@ class Plotcp_Frontend
         $form_end_day = $form_end_month = $form_end_year = '';
 
         eval('$html = "' . $templates->get('plotcp_submit_form') . '";');
+
+        return $html;
+    }
+
+    /**
+     * Full edit form for an existing plot (frontend). The caller must have
+     * checked existence and Plotcp_Permissions::canEditPlot() already. Pre-fills
+     * every field (category selected, groups checked, contacts as usernames,
+     * dates split); posts to the do_edit action.
+     */
+    public static function renderEditForm(array $plot): string
+    {
+        global $mybb, $lang, $templates, $theme, $header, $headerinclude, $footer;
+
+        $plot_id      = (int)$plot['pid'];
+        $selected_cid = (int)$plot['cid'];
+
+        $category_options = '';
+        foreach (Plotcp_Database::getCategories() as $cid => $category) {
+            $sel = (int)$cid === $selected_cid ? ' selected="selected"' : '';
+            $category_options .= '<option value="' . (int)$cid . '"' . $sel . '>'
+                . htmlspecialchars_uni((string)$category['name']) . '</option>';
+        }
+
+        $plot_gids = Plotcp_Database::getPlotGids($plot_id);
+        $group_checkboxes = '';
+        foreach (Plotcp_Database::getGroups(true) as $gid => $group) {
+            $chk = in_array((int)$gid, $plot_gids, true) ? ' checked="checked"' : '';
+            $group_checkboxes .= '<label><input type="checkbox" name="gids[]" value="' . (int)$gid . '"' . $chk . ' /> '
+                . htmlspecialchars_uni((string)$group['name']) . '</label>';
+        }
+        if ($group_checkboxes === '') {
+            $group_checkboxes = htmlspecialchars_uni($lang->plotcp_no_groups);
+        }
+
+        $form_title    = htmlspecialchars_uni((string)$plot['title']);
+        $form_location  = htmlspecialchars_uni((string)$plot['location']);
+
+        // stored uid CSV -> username CSV for the form
+        $form_contacts = '';
+        if (!empty($plot['contacts'])) {
+            $names = [];
+            foreach (Plotcp_Database::getUsersByUids(explode(',', (string)$plot['contacts'])) as $user) {
+                $names[] = $user['username'];
+            }
+            $form_contacts = htmlspecialchars_uni(implode(', ', $names));
+        }
+
+        // raw description shown as source in the textarea (round-trips on save)
+        $form_description = htmlspecialchars_uni((string)$plot['description']);
+
+        // dates: single-day plots leave the end block empty
+        $form_start_day = $form_start_month = $form_start_year = '';
+        $form_end_day = $form_end_month = $form_end_year = '';
+        if ((int)$plot['has_date'] === 1) {
+            $form_start_day   = (int)$plot['start_day'];
+            $form_start_month = (int)$plot['start_month'];
+            $form_start_year  = (int)$plot['start_year'];
+            if ((string)$plot['start_key'] !== (string)$plot['end_key']) {
+                $form_end_day   = (int)$plot['end_day'];
+                $form_end_month = (int)$plot['end_month'];
+                $form_end_year  = (int)$plot['end_year'];
+            }
+        }
+
+        eval('$html = "' . $templates->get('plotcp_edit_form') . '";');
 
         return $html;
     }

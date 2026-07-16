@@ -104,6 +104,11 @@ No other dependencies.
 - **Publish:** in the plot list open the options menu → **Publish** (or use
   the publish button on the plot's frontend page). All members of the linked
   plotting groups receive a MyAlerts notification.
+- **Edit:** every plot can be fully edited – in the ACP (options menu →
+  **Edit**) or on the frontend via the **Edit** button on the plot page. The
+  team may edit any plot; a submitter may edit their own plot while it is still
+  a preview. All fields are editable (title, category, groups, location,
+  contacts, description, inplay dates).
 - **Edit:** if you add another plotting group to an already published plot,
   only the members of the new group are notified – nobody gets a second alert.
 
