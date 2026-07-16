@@ -236,7 +236,9 @@ plot. Configure it under ACP → Configuration → Settings → Plot Control Pan
 
 Place `{$plotcp_random_plot}` in a top-level template or a forum/category
 description – same two ways as `{$plotcp_current_plots}` above. A different plot
-is picked on each page load.
+is picked on each page load. If the variable is enabled but nothing matches
+(e.g. scope *current inplay months* but no plot falls in the period), a short
+notice is shown instead of nothing.
 
 ### Category descriptions
 

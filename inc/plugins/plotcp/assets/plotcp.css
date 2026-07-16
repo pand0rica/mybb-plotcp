@@ -164,6 +164,11 @@
     line-height: 1.5;
 }
 
+.plotcp_random_plot_empty {
+    font-style: italic;
+    color: #666;
+}
+
 .plotcp_inline_form {
     display: inline;
 }

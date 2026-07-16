@@ -723,11 +723,12 @@ class Plotcp_Frontend
      * Builds {$plotcp_random_plot}: one random published plot from the
      * configured categories (plotcp_random_categories, empty = all), optionally
      * limited to the current inplay months (plotcp_random_scope = current).
-     * Empty string when disabled or nothing matches.
+     * Empty string when disabled; when enabled but nothing matches, a short
+     * notice is shown instead.
      */
     public static function buildRandomPlot(): string
     {
-        global $mybb, $templates;
+        global $mybb, $lang, $templates;
 
         $scope = isset($mybb->settings['plotcp_random_scope'])
             ? (string)$mybb->settings['plotcp_random_scope'] : 'off';
@@ -747,7 +748,14 @@ class Plotcp_Frontend
 
         $plot = Plotcp_Database::getRandomPlot($cids, $scope === 'current');
         if (!$plot) {
-            return '';
+            // enabled but nothing matches → notice instead of an empty box.
+            // For the current-period scope reuse the period-specific message.
+            $empty = $scope === 'current'
+                ? $lang->plotcp_current_plots_empty
+                : $lang->plotcp_random_plot_empty;
+
+            return '<div class="plotcp_random_plot"><div class="plotcp_random_plot_empty">'
+                . htmlspecialchars_uni($empty) . '</div></div>';
         }
 
         $plot_link        = 'plotcp.php?action=view&amp;pid=' . (int)$plot['pid'];

@@ -24,7 +24,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   all – the list is rebuilt from the categories on activation and whenever a
   category is added/edited/deleted). Renders from its own template
   (`plotcp_random_plot`) and, like `{$plotcp_current_plots}`, can be placed in
-  any top-level template or inside a forum/category description.
+  any top-level template or inside a forum/category description. When enabled but
+  nothing matches (e.g. scope = current inplay months but no plot falls in the
+  period), a short notice (`.plotcp_random_plot_empty`) is shown instead of an
+  empty box.
 - Full plot editing on the frontend: a plot page now has an **Edit** button for
   the team (any plot) and for the submitter (their own plot while it is still a
   preview). The pre-filled form edits title, category, plotting groups, location,
