@@ -80,7 +80,10 @@ Class/core split (like rpgcalendar/Blacklist):
 - `global_intermediate` (`plotcp_handle_globals`) – builds the global vars
   `{$plotcp_current_plots}` (plots overlapping `plotcp_current_inplay`) and
   `{$plotcp_random_plot}` (one random published plot; setting
-  `plotcp_random_scope` = off|all|current + `plotcp_random_categories` cid CSV).
+  `plotcp_random_scope` = off|all|current + `plotcp_random_categories`, a
+  checkbox setting whose optionscode is rebuilt from the categories by
+  `Plotcp_Installer::refreshRandomCategoryOptions()` on activation and after
+  category add/edit/delete; value = selected cids CSV).
   Early-returns (no core/frontend load, no queries) when neither is enabled. NOT
   `global_start` – theme/template cache is not loaded there yet. Both vars are
   usable in templates AND in forum/category descriptions via a two-phase swap

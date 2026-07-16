@@ -446,6 +446,9 @@ function plotcp_acp_categories(): void
     if ($mybb->request_method === 'post') {
         verify_post_check($mybb->get_input('my_post_key'));
 
+        // keep the random-plot category checkbox list in sync with the categories
+        require_once MYBB_ROOT . 'inc/plugins/plotcp/core/installer.php';
+
         $sub_action = $mybb->get_input('sub_action');
         $cid        = (int)$mybb->get_input('cid', MyBB::INPUT_INT);
 
@@ -455,6 +458,7 @@ function plotcp_acp_categories(): void
                 admin_redirect($base_url);
             }
             $db->delete_query('plotcp_categories', 'cid = ' . $cid);
+            Plotcp_Installer::refreshRandomCategoryOptions();
             flash_message($lang->plotcp_admin_category_deleted, 'success');
             admin_redirect($base_url);
         }
@@ -475,6 +479,7 @@ function plotcp_acp_categories(): void
         } else {
             $db->insert_query('plotcp_categories', $data);
         }
+        Plotcp_Installer::refreshRandomCategoryOptions();
         flash_message($lang->plotcp_admin_category_saved, 'success');
         admin_redirect($base_url);
     }
@@ -487,14 +492,12 @@ function plotcp_acp_categories(): void
     plotcp_acp_nav_tabs('categories');
 
     $table = new Table;
-    $table->construct_header($lang->plotcp_admin_col_id, ['class' => 'align_center', 'width' => '6%']);
     $table->construct_header($lang->plotcp_admin_col_name);
     $table->construct_header($lang->plotcp_admin_col_description);
     $table->construct_header($lang->plotcp_admin_col_order, ['class' => 'align_center', 'width' => '10%']);
     $table->construct_header($lang->plotcp_admin_col_controls, ['class' => 'align_center', 'width' => '20%']);
 
     foreach (Plotcp_Database::getCategories() as $cid => $category) {
-        $table->construct_cell((int)$cid, ['class' => 'align_center']);
         $table->construct_cell(htmlspecialchars_uni((string)$category['name']));
         // long descriptions are truncated in the list; edit shows the full text
         $desc_preview = (string)$category['description'];
@@ -522,7 +525,7 @@ function plotcp_acp_categories(): void
     }
 
     if ($table->num_rows() === 0) {
-        $table->construct_cell($lang->plotcp_admin_no_categories, ['colspan' => 5]);
+        $table->construct_cell($lang->plotcp_admin_no_categories, ['colspan' => 4]);
         $table->construct_row();
     }
 

@@ -62,7 +62,6 @@ $l['plotcp_field_end'] = 'End (day / month / year)';
 $l['plotcp_admin_add_category'] = 'Add category';
 $l['plotcp_admin_edit_category'] = 'Edit category';
 $l['plotcp_admin_category_desc_hint'] = 'Shown on the plot page between the category tabs and the plot list. HTML and MyCode are allowed. May be long.';
-$l['plotcp_admin_col_id'] = 'ID';
 $l['plotcp_admin_col_name'] = 'Name';
 $l['plotcp_admin_col_description'] = 'Description';
 $l['plotcp_admin_col_order'] = 'Order';

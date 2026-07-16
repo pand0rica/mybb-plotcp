@@ -80,7 +80,7 @@ No other dependencies.
 | **Allow group proposals** | Users may propose new plotting groups (team approval required). |
 | **Current inplay months** | One or more in-play months as `year-month`, comma separated (e.g. `1487-3, 1487-4`). Drives the `{$plotcp_current_plots}` variable. Empty = variable disabled. |
 | **Random plot** | Drives the `{$plotcp_random_plot}` variable: `Disabled`, `All published plots`, or `Only plots in the current inplay months`. |
-| **Random plot categories** | Category IDs the random plot may come from, comma separated (e.g. `1,3`). Empty = all categories. IDs are shown in the ACP category list. |
+| **Random plot categories** | Checkboxes of your plot categories the random plot may come from. Select none for all categories. |
 
 ## Usage
 
@@ -226,9 +226,9 @@ plot. Configure it under ACP → Configuration → Settings → Plot Control Pan
 
 - **Random plot** – `Disabled` (off), `All published plots`, or `Only plots in
   the current inplay months` (uses the same *Current inplay months* setting).
-- **Random plot categories** – restrict the pick to certain categories by their
-  IDs (comma separated); leave empty for all. The category IDs are listed in
-  ACP → Plot Control Panel → **Categories**.
+- **Random plot categories** – tick the categories the random plot may come
+  from; leave all unticked for any category. The checkbox list is built
+  automatically from your plot categories.
 
 Place `{$plotcp_random_plot}` in a top-level template or a forum/category
 description – same two ways as `{$plotcp_current_plots}` above. A different plot

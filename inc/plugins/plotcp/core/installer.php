@@ -204,8 +204,9 @@ class Plotcp_Installer
             ],
             'random_categories' => [
                 'Random plot categories',
-                'Category IDs the random plot may come from, comma separated (e.g. 1,3). Leave empty for all categories. The IDs are shown in the ACP category list (Plot Control Panel → Categories).',
-                'text', '',
+                'Categories the random plot may come from. Select none to allow all categories. (The checkbox list is built from your plot categories.)',
+                // real options are filled in by refreshRandomCategoryOptions()
+                'checkbox', '',
             ],
         ];
     }
@@ -252,7 +253,43 @@ class Plotcp_Installer
             $disporder++;
         }
 
+        // fill the random-categories checkbox with the current categories (also
+        // upgrades an older 'text' optionscode on existing installs)
+        self::refreshRandomCategoryOptions();
+
         rebuild_settings();
+    }
+
+    /**
+     * Rebuilds the optionscode of the plotcp_random_categories setting as a
+     * checkbox list of the current plot categories (cid => name). Call after
+     * category add/edit/delete and on activation so the list stays current.
+     * No-op when the setting row does not exist yet.
+     */
+    public static function refreshRandomCategoryOptions(): void
+    {
+        global $db;
+
+        $exists = $db->fetch_array($db->simple_select('settings', 'sid',
+            "name = 'plotcp_random_categories'"));
+        if (!$exists) {
+            return;
+        }
+
+        require_once MYBB_ROOT . 'inc/plugins/plotcp/core/database.php';
+
+        $lines = ['checkbox'];
+        foreach (Plotcp_Database::getCategories() as $cid => $category) {
+            // options are newline separated, so a name must not contain newlines
+            $name = trim(str_replace(["\r", "\n"], ' ', (string)$category['name']));
+            $lines[] = (int)$cid . '=' . $name;
+        }
+
+        $db->update_query('settings',
+            ['optionscode' => $db->escape_string(implode("\n", $lines))],
+            "name = 'plotcp_random_categories'");
+        // optionscode is read live from the DB by the settings editor; the
+        // settings.php value cache (rebuild_settings) is unaffected.
     }
 
     public static function removeSettings(): void
