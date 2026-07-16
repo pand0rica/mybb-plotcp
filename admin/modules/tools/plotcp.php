@@ -487,12 +487,14 @@ function plotcp_acp_categories(): void
     plotcp_acp_nav_tabs('categories');
 
     $table = new Table;
+    $table->construct_header($lang->plotcp_admin_col_id, ['class' => 'align_center', 'width' => '6%']);
     $table->construct_header($lang->plotcp_admin_col_name);
     $table->construct_header($lang->plotcp_admin_col_description);
     $table->construct_header($lang->plotcp_admin_col_order, ['class' => 'align_center', 'width' => '10%']);
     $table->construct_header($lang->plotcp_admin_col_controls, ['class' => 'align_center', 'width' => '20%']);
 
     foreach (Plotcp_Database::getCategories() as $cid => $category) {
+        $table->construct_cell((int)$cid, ['class' => 'align_center']);
         $table->construct_cell(htmlspecialchars_uni((string)$category['name']));
         // long descriptions are truncated in the list; edit shows the full text
         $desc_preview = (string)$category['description'];
@@ -520,7 +522,7 @@ function plotcp_acp_categories(): void
     }
 
     if ($table->num_rows() === 0) {
-        $table->construct_cell($lang->plotcp_admin_no_categories, ['colspan' => 4]);
+        $table->construct_cell($lang->plotcp_admin_no_categories, ['colspan' => 5]);
         $table->construct_row();
     }
 

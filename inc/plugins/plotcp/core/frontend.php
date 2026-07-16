@@ -709,6 +709,50 @@ class Plotcp_Frontend
         return $plots_out;
     }
 
+    /**
+     * Builds {$plotcp_random_plot}: one random published plot from the
+     * configured categories (plotcp_random_categories, empty = all), optionally
+     * limited to the current inplay months (plotcp_random_scope = current).
+     * Empty string when disabled or nothing matches.
+     */
+    public static function buildRandomPlot(): string
+    {
+        global $mybb, $templates;
+
+        $scope = isset($mybb->settings['plotcp_random_scope'])
+            ? (string)$mybb->settings['plotcp_random_scope'] : 'off';
+        if ($scope !== 'all' && $scope !== 'current') {
+            return '';
+        }
+
+        $cids = [];
+        $raw = isset($mybb->settings['plotcp_random_categories'])
+            ? (string)$mybb->settings['plotcp_random_categories'] : '';
+        foreach (explode(',', $raw) as $c) {
+            $c = (int)trim($c);
+            if ($c > 0) {
+                $cids[] = $c;
+            }
+        }
+
+        $plot = Plotcp_Database::getRandomPlot($cids, $scope === 'current');
+        if (!$plot) {
+            return '';
+        }
+
+        $plot_link        = 'plotcp.php?action=view&amp;pid=' . (int)$plot['pid'];
+        $plot_title       = htmlspecialchars_uni((string)$plot['title']);
+        $plot_badges      = self::badges($plot);
+        $plot_date        = self::formatDateRange($plot);
+        $plot_description = self::parseDescription((string)$plot['description']);
+        $category         = Plotcp_Database::getCategory((int)$plot['cid']);
+        $plot_category    = $category ? htmlspecialchars_uni((string)$category['name']) : '';
+
+        eval('$html = "' . $templates->get('plotcp_random_plot') . '";');
+
+        return $html;
+    }
+
     public static function formatDateRange(array $plot): string
     {
         if ((int)$plot['has_date'] !== 1) {

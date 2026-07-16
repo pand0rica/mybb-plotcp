@@ -146,6 +146,19 @@
     color: #666;
 }
 
+/* Random plot spotlight ({$plotcp_random_plot}). Light defaults – restyle in
+   the plotcp_random_plot template or your theme. */
+.plotcp_random_plot_meta {
+    font-size: 0.9em;
+    color: #666;
+    margin-left: 6px;
+}
+
+.plotcp_random_plot_desc {
+    margin-top: 4px;
+    line-height: 1.5;
+}
+
 .plotcp_inline_form {
     display: inline;
 }

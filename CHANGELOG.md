@@ -17,6 +17,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### New
 
+- Random plot spotlight: a new global template variable `{$plotcp_random_plot}`
+  shows one random published plot. Two settings drive it – **Random plot**
+  (`off` / all published plots / only the current inplay months) and **Random
+  plot categories** (comma-separated category IDs, empty = all; the IDs are now
+  shown in the ACP category list). Renders from its own template
+  (`plotcp_random_plot`) and, like `{$plotcp_current_plots}`, can be placed in
+  any top-level template or inside a forum/category description.
 - Full plot editing on the frontend: a plot page now has an **Edit** button for
   the team (any plot) and for the submitter (their own plot while it is still a
   preview). The pre-filled form edits title, category, plotting groups, location,

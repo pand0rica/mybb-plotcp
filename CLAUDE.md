@@ -37,7 +37,8 @@ Class/core split (like rpgcalendar/Blacklist):
   lookup (`getLogbookScenes`, best effort via `table_exists('scene')`), single
   group's member list (`getGroupMembers`), current-inplay parsing
   (`currentInplayMonths` from the `plotcp_current_inplay` setting) + overlap
-  query (`getPlotsForInplayMonths`, `visible = 1` only)
+  query (`getPlotsForInplayMonths`, `visible = 1` only), random published plot
+  (`getRandomPlot(cids, currentOnly)`, `ORDER BY RAND() LIMIT 1`)
 - `inc/plugins/plotcp/core/permissions.php` – `Plotcp_Permissions`: isTeam,
   canViewPreview (team ∪ preview_groups ∪ submitter), canEditPlot
   (team any plot ∪ submitter of own plot while visible = 0), canLinkThread
@@ -62,7 +63,8 @@ Class/core split (like rpgcalendar/Blacklist):
   same icons/classes as logbook's `forumdisplay_thread_end`). `renderGroups(gid)`
   shows a clicked group's member list (team gets a per-member remove button →
   `remove_group_member` POST). `buildCurrentPlots()` renders the
-  `{$plotcp_current_plots}` global (see hooks below). `renderEditForm($plot)` is
+  `{$plotcp_current_plots}` global; `buildRandomPlot()` renders the
+  `{$plotcp_random_plot}` global (see hooks below). `renderEditForm($plot)` is
   the frontend full-edit form (pre-filled; posts to `do_edit`), gated by
   `canEditPlot`; the edit button sits in the plot detail action bar next to the
   team publish button.
@@ -75,15 +77,19 @@ Class/core split (like rpgcalendar/Blacklist):
   before MyBB escapes the subject (line ~1092), so the plot title stays raw
   here; the tid→plot map is built once per page from `$threadcache`. Preview
   names only shown to viewers who pass `canViewPreview()`.
-- `global_intermediate` (`plotcp_handle_globals`) – builds `{$plotcp_current_plots}`
-  (published plots overlapping the `plotcp_current_inplay` months); empty (no
-  query) while the setting is empty. NOT `global_start` – theme/template cache
-  is not loaded there yet. Usable in templates AND in forum/category
-  descriptions via a two-phase swap: `build_forumbits_forum` replaces the
-  literal token `{$plotcp_current_plots}` in a description with a sanitiser-proof
-  HTML-comment sentinel (`<!--PLOTCP_CURRENT_PLOTS-->`, before MyBB's `&` fixup
-  in functions_forumlist), and `pre_output_page` swaps that sentinel for the
-  built value once the page is assembled. Both handlers are strpos-guarded.
+- `global_intermediate` (`plotcp_handle_globals`) – builds the global vars
+  `{$plotcp_current_plots}` (plots overlapping `plotcp_current_inplay`) and
+  `{$plotcp_random_plot}` (one random published plot; setting
+  `plotcp_random_scope` = off|all|current + `plotcp_random_categories` cid CSV).
+  Early-returns (no core/frontend load, no queries) when neither is enabled. NOT
+  `global_start` – theme/template cache is not loaded there yet. Both vars are
+  usable in templates AND in forum/category descriptions via a two-phase swap
+  driven by the `plotcp_description_tokens()` map (token → global var name):
+  `build_forumbits_forum` replaces the literal token in a description with a
+  sanitiser-proof HTML-comment sentinel (`<!--` . strtoupper(var) . `-->`,
+  before MyBB's `&` fixup in functions_forumlist), and `pre_output_page` swaps
+  each sentinel for its built value once the page is assembled. Both handlers
+  are strpos-guarded.
 - `plotcp.php` (MyBB root) – frontend entry, action dispatch, all POST handlers
 - `admin/modules/tools/plotcp.php` – ACP module (loads `$lang->load('plotcp')`
   itself; tabs via `output_nav_tabs` with description keys)

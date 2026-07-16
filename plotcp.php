@@ -13,7 +13,7 @@ define('THIS_SCRIPT', 'plotcp.php');
 $templatelist = 'plotcp_browse,plotcp_browse_body,plotcp_browse_nav,plotcp_detail,plotcp_index_empty,'
     . 'plotcp_view_scene_bit,plotcp_view_teambar,plotcp_groups,plotcp_groups_bit,'
     . 'plotcp_groups_pending_bit,plotcp_groups_members,plotcp_groups_member_bit,'
-    . 'plotcp_groups_propose,plotcp_submit_form,plotcp_edit_form';
+    . 'plotcp_groups_propose,plotcp_submit_form,plotcp_edit_form,plotcp_random_plot';
 
 require_once './global.php';
 

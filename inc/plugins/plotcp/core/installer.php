@@ -196,6 +196,17 @@ class Plotcp_Installer
                 'Drives the global template variable {$plotcp_current_plots} (published plots overlapping these months). Enter one or more inplay months as year-month, comma separated, e.g. 1487-3, 1487-4. Leave empty to disable the variable. The month texts of these months are provided separately by the rpgcalendar plugin.',
                 'text', '',
             ],
+            'random_scope' => [
+                'Random plot',
+                'Drives the global template variable {$plotcp_random_plot} (one random published plot). "All" picks from all published plots, "Current inplay months" only from plots overlapping the Current inplay months above. "Disabled" turns the variable off.',
+                "select\noff=Disabled\nall=All published plots\ncurrent=Only plots in the current inplay months",
+                'off',
+            ],
+            'random_categories' => [
+                'Random plot categories',
+                'Category IDs the random plot may come from, comma separated (e.g. 1,3). Leave empty for all categories. The IDs are shown in the ACP category list (Plot Control Panel → Categories).',
+                'text', '',
+            ],
         ];
     }
 

@@ -31,6 +31,9 @@ inplay threads and automatic RPG Calendar integration.
 - **Current plots variable**: a global template variable `{$plotcp_current_plots}`
   lists the published plots of the current in-play months (a setting), usable in
   any template **and** inside forum/category descriptions
+- **Random plot variable**: a global template variable `{$plotcp_random_plot}`
+  spotlights one random published plot, configurable by category and by scope
+  (all plots or only the current in-play months)
 - **Optional IC date range** per plot with arbitrary years (negative years
   and year 0 included, proleptic Gregorian calendar) – dated plots appear
   automatically in the [RPG Calendar](https://github.com/pand0rica/rpgcalendar)
@@ -76,6 +79,8 @@ No other dependencies.
 | **Allow plot submissions** | Users may submit new plots via the frontend form. |
 | **Allow group proposals** | Users may propose new plotting groups (team approval required). |
 | **Current inplay months** | One or more in-play months as `year-month`, comma separated (e.g. `1487-3, 1487-4`). Drives the `{$plotcp_current_plots}` variable. Empty = variable disabled. |
+| **Random plot** | Drives the `{$plotcp_random_plot}` variable: `Disabled`, `All published plots`, or `Only plots in the current inplay months`. |
+| **Random plot categories** | Category IDs the random plot may come from, comma separated (e.g. `1,3`). Empty = all categories. IDs are shown in the ACP category list. |
 
 ## Usage
 
@@ -213,6 +218,21 @@ You can use it in two ways:
    Forums & Posts → Forums → edit → *Description*). On the board index the token
    is replaced with the plot list. (For categories, make sure your theme's
    `forumbit_depth1_cat` template actually outputs the description.)
+
+### Random plot variable
+
+The global template variable `{$plotcp_random_plot}` shows one random published
+plot. Configure it under ACP → Configuration → Settings → Plot Control Panel:
+
+- **Random plot** – `Disabled` (off), `All published plots`, or `Only plots in
+  the current inplay months` (uses the same *Current inplay months* setting).
+- **Random plot categories** – restrict the pick to certain categories by their
+  IDs (comma separated); leave empty for all. The category IDs are listed in
+  ACP → Plot Control Panel → **Categories**.
+
+Place `{$plotcp_random_plot}` in a top-level template or a forum/category
+description – same two ways as `{$plotcp_current_plots}` above. A different plot
+is picked on each page load.
 
 ### Category descriptions
 

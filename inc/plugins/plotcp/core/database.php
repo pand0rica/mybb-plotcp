@@ -567,6 +567,48 @@ class Plotcp_Database
         return $plots;
     }
 
+    /**
+     * One random published plot for the {$plotcp_random_plot} variable.
+     *
+     * @param int[] $categoryIds limit to these categories (empty = all)
+     * @param bool  $currentOnly limit to plots overlapping the current inplay
+     *                           months (returns null when none are configured)
+     * @return array|null the plot row, or null when nothing matches
+     */
+    public static function getRandomPlot(array $categoryIds, bool $currentOnly): ?array
+    {
+        global $db;
+
+        $conds = ['visible = 1'];
+
+        $categoryIds = array_values(array_filter(array_map('intval', $categoryIds),
+            function ($c) { return $c > 0; }));
+        if ($categoryIds) {
+            $conds[] = 'cid IN (' . implode(',', $categoryIds) . ')';
+        }
+
+        if ($currentOnly) {
+            $months = self::currentInplayMonths();
+            if (!$months) {
+                return null;
+            }
+            $ors = [];
+            foreach ($months as $m) {
+                $y  = (int)$m['year'];
+                $mo = (int)$m['month'];
+                $ms = $y * 10000 + $mo * 100 + 1;
+                $me = $y * 10000 + $mo * 100 + 31;
+                $ors[] = '(start_key <= ' . $me . ' AND end_key >= ' . $ms . ')';
+            }
+            $conds[] = 'has_date = 1 AND (' . implode(' OR ', $ors) . ')';
+        }
+
+        $row = $db->fetch_array($db->simple_select('plotcp_plots', '*',
+            implode(' AND ', $conds), ['order_by' => 'RAND()', 'limit' => 1]));
+
+        return $row ? $row : null;
+    }
+
     /* ---------------------------------------------------------------------
      * Contacts (plot contact persons, stored as CSV of validated uids)
      * ------------------------------------------------------------------ */

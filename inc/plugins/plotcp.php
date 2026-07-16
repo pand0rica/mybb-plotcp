@@ -174,60 +174,88 @@ function plotcp_register_alert_formatter(): void
  */
 function plotcp_handle_globals(): void
 {
-    global $mybb, $lang, $plotcp_current_plots;
+    global $mybb, $lang, $plotcp_current_plots, $plotcp_random_plot;
 
     $plotcp_current_plots = '';
+    $plotcp_random_plot   = '';
 
-    if (empty($mybb->settings['plotcp_current_inplay'])) {
+    $current_on = !empty($mybb->settings['plotcp_current_inplay']);
+    $random_on  = isset($mybb->settings['plotcp_random_scope'])
+        && in_array((string)$mybb->settings['plotcp_random_scope'], ['all', 'current'], true);
+
+    // nothing configured → no core/frontend load, no queries
+    if (!$current_on && !$random_on) {
         return;
     }
 
     $lang->load('plotcp');
-
     plotcp_load_core();
     require_once MYBB_ROOT . 'inc/plugins/plotcp/core/frontend.php';
-    $plotcp_current_plots = Plotcp_Frontend::buildCurrentPlots();
+
+    if ($current_on) {
+        $plotcp_current_plots = Plotcp_Frontend::buildCurrentPlots();
+    }
+    if ($random_on) {
+        $plotcp_random_plot = Plotcp_Frontend::buildRandomPlot();
+    }
 }
 
 /**
- * Lets admins drop the literal token {$plotcp_current_plots} into a forum or
- * category description (board index / subforum lists). The description is run
- * through MyBB's '&' sanitiser (functions_forumlist.php), which would
- * double-encode the rendered HTML entities of the value, so here we only swap
- * the token for a sanitiser-proof sentinel (an HTML comment, no '&'). The real
- * value is injected in plotcp_handle_output() after the page is assembled.
+ * Global template variables that may also be used inside forum/category
+ * descriptions. Map: literal token in a description => name of the global
+ * holding the built value. The sentinel is derived as
+ * "<!--" . strtoupper(var) . "-->".
+ */
+function plotcp_description_tokens(): array
+{
+    return [
+        '{$plotcp_current_plots}' => 'plotcp_current_plots',
+        '{$plotcp_random_plot}'   => 'plotcp_random_plot',
+    ];
+}
+
+/**
+ * Lets admins drop one of the plotcp tokens into a forum or category
+ * description (board index / subforum lists). The description is run through
+ * MyBB's '&' sanitiser (functions_forumlist.php), which would double-encode the
+ * rendered HTML entities of the value, so here we only swap the token for a
+ * sanitiser-proof sentinel (an HTML comment, no '&'). The real value is injected
+ * in plotcp_handle_output() after the page is assembled.
  */
 function plotcp_handle_forumbits($forum)
 {
-    if (!empty($forum['description'])
-        && strpos($forum['description'], '{$plotcp_current_plots}') !== false
-    ) {
-        $forum['description'] = str_replace(
-            '{$plotcp_current_plots}',
-            '<!--PLOTCP_CURRENT_PLOTS-->',
-            $forum['description']
-        );
+    if (empty($forum['description'])) {
+        return $forum;
+    }
+
+    foreach (plotcp_description_tokens() as $token => $var) {
+        if (strpos($forum['description'], $token) !== false) {
+            $forum['description'] = str_replace(
+                $token, '<!--' . strtoupper($var) . '-->', $forum['description']);
+        }
     }
 
     return $forum;
 }
 
 /**
- * Replaces the sentinel left by plotcp_handle_forumbits() with the built
- * {$plotcp_current_plots} value once the whole page is assembled – past the
- * forum-description sanitiser, so the rendered HTML entities survive intact.
- * Cheap no-op on every page unless a description on the page used the token.
+ * Replaces the sentinels left by plotcp_handle_forumbits() with the built
+ * values once the whole page is assembled – past the forum-description
+ * sanitiser, so the rendered HTML entities survive intact. Cheap no-op on every
+ * page unless a description on the page used a token.
  */
 function plotcp_handle_output($contents)
 {
-    global $plotcp_current_plots;
+    if (strpos($contents, '<!--PLOTCP_') === false) {
+        return $contents;
+    }
 
-    if (strpos($contents, '<!--PLOTCP_CURRENT_PLOTS-->') !== false) {
-        $contents = str_replace(
-            '<!--PLOTCP_CURRENT_PLOTS-->',
-            (string)$plotcp_current_plots,
-            $contents
-        );
+    foreach (plotcp_description_tokens() as $var) {
+        $sentinel = '<!--' . strtoupper($var) . '-->';
+        if (strpos($contents, $sentinel) !== false) {
+            $value    = isset($GLOBALS[$var]) ? (string)$GLOBALS[$var] : '';
+            $contents = str_replace($sentinel, $value, $contents);
+        }
     }
 
     return $contents;
