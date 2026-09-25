@@ -78,7 +78,9 @@ function plotcp_deactivate(): void
     Plotcp_Installer::removeModcpNavInjection();
     Plotcp_Installer::removeIndexNoticeInjection();
     Plotcp_Installer::removeSceneBoxInjection();
-    Plotcp_Installer::unregisterAlertTypes();
+    // Alert types are NOT removed here: re-adding them on activate would give
+    // them new ids and orphan every existing alert (MyAlerts INNER JOINs
+    // alerts on alert_types.id, so those alerts become invisible).
     Plotcp_Installer::removeStylesheet();
     Plotcp_Installer::removeTemplates();
     Plotcp_Installer::removeSettings();
@@ -87,6 +89,7 @@ function plotcp_deactivate(): void
 function plotcp_uninstall(): void
 {
     require_once MYBB_ROOT . 'inc/plugins/plotcp/core/installer.php';
+    Plotcp_Installer::unregisterAlertTypes();
     Plotcp_Installer::dropTables();
 }
 

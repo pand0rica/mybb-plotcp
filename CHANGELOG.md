@@ -24,6 +24,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+- Deactivating and re-activating the plugin made every existing plotcp alert
+  invisible (counter 0, missing from the list): deactivate deleted the MyAlerts
+  alert types and activate re-created them with new ids, orphaning the stored
+  alerts. The alert types now survive deactivation and are removed – together
+  with their alerts – only on uninstall.
 - Browse navigation: the active plot was marked with the theme class
   `trow_shaded`, which looks red/deleted in some themes. It now uses a subtle,
   theme-neutral marker (a `»` prefix plus bold) on the normal row background.

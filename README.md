@@ -234,10 +234,12 @@ plot list.
 ## Uninstallation
 
 1. ACP → Configuration → Plugins → **Deactivate** "Plot Control Panel"
-   (removes templates, settings, stylesheet, alert types and the showthread
-   template injection).
+   (removes templates, settings, stylesheet and the showthread template
+   injection). MyAlerts alert types are kept, so existing alerts stay visible
+   after re-activating.
 2. Click **Uninstall** to drop the plugin's database tables (categories, plots,
-   plot↔group links and plot↔thread links). All plot data is deleted
+   plot↔group links and plot↔thread links) and to remove the MyAlerts alert
+   types together with their alerts. All plot data is deleted
    permanently. Plotting groups themselves belong to the Plotting Groups plugin.
 3. Delete the uploaded files.
 

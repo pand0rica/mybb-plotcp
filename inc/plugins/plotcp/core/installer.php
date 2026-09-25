@@ -553,7 +553,13 @@ class Plotcp_Installer
                 return;
             }
             foreach (plotcp_alert_codes() as $code) {
-                $manager->deleteByCode($code);
+                $type = $manager->getByCode($code);
+                if ($type === null) {
+                    continue;
+                }
+                // Drop the alerts first – MyAlerts leaves them behind otherwise.
+                $db->delete_query('alerts', 'alert_type_id = ' . (int)$type->getId());
+                $manager->deleteById((int)$type->getId());
             }
         } catch (Throwable $e) {
             // Best effort – see registerAlertTypes().
