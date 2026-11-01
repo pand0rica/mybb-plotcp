@@ -140,3 +140,4 @@ $l['plotcp_modcp_confirm_delete'] = 'Diese Plottinggruppe wirklich löschen? Mit
 $l['plotcp_modcp_approved'] = 'Die Plottinggruppe wurde freigegeben. Die Mitglieder werden benachrichtigt.';
 $l['plotcp_modcp_deleted'] = 'Die Plottinggruppe wurde gelöscht.';
 $l['plotcp_modcp_saved'] = 'Die Änderungen wurden gespeichert.';
+$l['plotcp_nav_toggle'] = 'Plotliste';

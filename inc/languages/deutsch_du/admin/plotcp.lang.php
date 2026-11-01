@@ -65,6 +65,8 @@ $l['plotcp_admin_category_desc_hint'] = 'Wird auf der Plot-Seite zwischen den Ka
 $l['plotcp_admin_col_name'] = 'Name';
 $l['plotcp_admin_col_description'] = 'Beschreibung';
 $l['plotcp_admin_col_order'] = 'Sortierung';
+$l['plotcp_admin_col_show_in_current'] = 'In aktuellen Plots';
+$l['plotcp_admin_category_show_in_current_hint'] = 'Wenn auf Nein gesetzt, erscheinen Plots dieser Kategorie nie in der {$plotcp_current_plots}-Box – auch dann nicht, wenn ihr Inplay-Datum in den aktuellen Zeitraum fällt.';
 $l['plotcp_admin_no_categories'] = 'Noch keine Kategorien vorhanden. Lege mindestens eine Kategorie an, bevor du Plots erstellst.';
 
 // Gruppen

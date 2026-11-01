@@ -534,7 +534,9 @@ class Plotcp_Database
 
     /**
      * Published, dated plots whose inplay range overlaps any of the given
-     * months. Uses the precomputed start_key/end_key (y*10000+m*100+d).
+     * months. Uses the precomputed start_key/end_key (y*10000+m*100+d). Only
+     * plots in a category flagged show_in_current = 1 are returned, so a
+     * category can be excluded from {$plotcp_current_plots} in the ACP.
      *
      * @param array[] $months each ['year' => int, 'month' => int]
      * @return array[] plot rows, earliest first
@@ -553,13 +555,15 @@ class Plotcp_Database
             $mo = (int)$m['month'];
             $ms = $y * 10000 + $mo * 100 + 1;   // first day of the month
             $me = $y * 10000 + $mo * 100 + 31;  // upper bound for the month
-            $ors[] = '(start_key <= ' . $me . ' AND end_key >= ' . $ms . ')';
+            $ors[] = '(p.start_key <= ' . $me . ' AND p.end_key >= ' . $ms . ')';
         }
 
         $plots = [];
-        $query = $db->query('SELECT * FROM ' . TABLE_PREFIX . 'plotcp_plots
-            WHERE visible = 1 AND has_date = 1 AND (' . implode(' OR ', $ors) . ')
-            ORDER BY start_key ASC, title ASC');
+        $query = $db->query('SELECT p.* FROM ' . TABLE_PREFIX . 'plotcp_plots p
+            INNER JOIN ' . TABLE_PREFIX . 'plotcp_categories c ON (c.cid = p.cid)
+            WHERE p.visible = 1 AND p.has_date = 1 AND c.show_in_current = 1
+                AND (' . implode(' OR ', $ors) . ')
+            ORDER BY p.start_key ASC, p.title ASC');
         while ($row = $db->fetch_array($query)) {
             $plots[] = $row;
         }

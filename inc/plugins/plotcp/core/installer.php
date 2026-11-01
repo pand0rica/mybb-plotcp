@@ -46,9 +46,10 @@ class Plotcp_Installer
 
         $db->query("CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "plotcp_categories` (
             `cid`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
-            `name`          VARCHAR(120) NOT NULL DEFAULT '',
-            `description`   TEXT NOT NULL,
-            `display_order` INT NOT NULL DEFAULT 0,
+            `name`             VARCHAR(120) NOT NULL DEFAULT '',
+            `description`      TEXT NOT NULL,
+            `display_order`    INT NOT NULL DEFAULT 0,
+            `show_in_current`  TINYINT(1) NOT NULL DEFAULT 1,
             PRIMARY KEY (`cid`)
         ) ENGINE=InnoDB{$collation};");
 
@@ -118,6 +119,13 @@ class Plotcp_Installer
         if ($col && stripos((string)$col['Type'], 'text') === false) {
             $db->write_query("ALTER TABLE " . TABLE_PREFIX
                 . "plotcp_categories MODIFY `description` TEXT NOT NULL");
+        }
+
+        // v1.2.0: per-category toggle whether its plots appear in
+        // {$plotcp_current_plots}. Default 1 so existing categories keep showing.
+        if (!$db->field_exists('show_in_current', 'plotcp_categories')) {
+            $db->write_query("ALTER TABLE " . TABLE_PREFIX
+                . "plotcp_categories ADD `show_in_current` TINYINT(1) NOT NULL DEFAULT 1");
         }
 
         // v1.2.0: plotting groups moved to the standalone plottinggroups plugin.
@@ -354,7 +362,8 @@ class Plotcp_Installer
         }
 
         $attachedto = 'index.php|plotcp.php|showthread.php';
-        $css = $db->escape_string((string)file_get_contents($css_path));
+        $raw = (string)file_get_contents($css_path);
+        $css = $db->escape_string($raw);
         $themes = $db->simple_select('themes', 'tid');
         while ($theme = $db->fetch_array($themes)) {
             $tid = (int)$theme['tid'];
@@ -363,13 +372,14 @@ class Plotcp_Installer
                 "name = 'plotcp.css' AND tid = '" . $tid . "'"
             ));
             if ($existing) {
+                $sid = (int)$existing['sid'];
                 $db->update_query('themestylesheets', [
                     'attachedto'   => $attachedto,
                     'stylesheet'   => $css,
                     'lastmodified' => TIME_NOW,
-                ], "sid = '" . (int)$existing['sid'] . "'", 1);
+                ], "sid = '" . $sid . "'", 1);
             } else {
-                $sid = $db->insert_query('themestylesheets', [
+                $sid = (int)$db->insert_query('themestylesheets', [
                     'name'         => 'plotcp.css',
                     'tid'          => $tid,
                     'attachedto'   => $attachedto,
@@ -377,9 +387,16 @@ class Plotcp_Installer
                     'lastmodified' => TIME_NOW,
                     'cachefile'    => 'plotcp.css',
                 ]);
-                $db->update_query('themestylesheets',
-                    ['cachefile' => "css.php?stylesheet={$sid}"], "sid = '{$sid}'", 1);
             }
+            // Write the physical cache file (cache/themes/theme{tid}/plotcp.css) so
+            // the stylesheet is actually served – this forum loads stylesheets from
+            // cache files, not the css.php fallback. cache_stylesheet() returns the
+            // cachefile name (or false if the cache dir is not writable, in which
+            // case we fall back to dynamic serving via css.php).
+            $cachefile = cache_stylesheet($tid, 'plotcp.css', $raw);
+            $db->update_query('themestylesheets',
+                ['cachefile' => ($cachefile ?: "css.php?stylesheet={$sid}")],
+                "sid = '{$sid}'", 1);
             update_theme_stylesheet_list($tid);
         }
     }

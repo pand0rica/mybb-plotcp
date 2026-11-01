@@ -65,6 +65,8 @@ $l['plotcp_admin_category_desc_hint'] = 'Shown on the plot page between the cate
 $l['plotcp_admin_col_name'] = 'Name';
 $l['plotcp_admin_col_description'] = 'Description';
 $l['plotcp_admin_col_order'] = 'Order';
+$l['plotcp_admin_col_show_in_current'] = 'In current plots';
+$l['plotcp_admin_category_show_in_current_hint'] = 'When set to No, plots in this category never appear in the {$plotcp_current_plots} box, even if their inplay date falls into the current period.';
 $l['plotcp_admin_no_categories'] = 'No categories yet. Create at least one category before adding plots.';
 
 // Groups

@@ -140,3 +140,4 @@ $l['plotcp_modcp_confirm_delete'] = 'Really delete this plotting group? Membersh
 $l['plotcp_modcp_approved'] = 'The plotting group has been approved. Its members are being notified.';
 $l['plotcp_modcp_deleted'] = 'The plotting group has been deleted.';
 $l['plotcp_modcp_saved'] = 'The changes have been saved.';
+$l['plotcp_nav_toggle'] = 'Plotliste';

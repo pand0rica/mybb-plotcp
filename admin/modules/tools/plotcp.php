@@ -461,9 +461,10 @@ function plotcp_acp_categories(): void
             admin_redirect($base_url);
         }
         $data = [
-            'name'          => $db->escape_string($name),
-            'description'   => $db->escape_string(trim((string)$mybb->get_input('description'))),
-            'display_order' => (int)$mybb->get_input('display_order', MyBB::INPUT_INT),
+            'name'            => $db->escape_string($name),
+            'description'     => $db->escape_string(trim((string)$mybb->get_input('description'))),
+            'display_order'   => (int)$mybb->get_input('display_order', MyBB::INPUT_INT),
+            'show_in_current' => $mybb->get_input('show_in_current', MyBB::INPUT_INT) ? 1 : 0,
         ];
 
         if ($cid > 0 && $sub_action === 'edit') {
@@ -487,6 +488,7 @@ function plotcp_acp_categories(): void
     $table->construct_header($lang->plotcp_admin_col_name);
     $table->construct_header($lang->plotcp_admin_col_description);
     $table->construct_header($lang->plotcp_admin_col_order, ['class' => 'align_center', 'width' => '10%']);
+    $table->construct_header($lang->plotcp_admin_col_show_in_current, ['class' => 'align_center', 'width' => '15%']);
     $table->construct_header($lang->plotcp_admin_col_controls, ['class' => 'align_center', 'width' => '20%']);
 
     foreach (Plotcp_Database::getCategories() as $cid => $category) {
@@ -498,6 +500,10 @@ function plotcp_acp_categories(): void
         }
         $table->construct_cell(htmlspecialchars_uni($desc_preview));
         $table->construct_cell((int)$category['display_order'], ['class' => 'align_center']);
+        $table->construct_cell(
+            (int)$category['show_in_current'] ? $lang->yes : $lang->no,
+            ['class' => 'align_center']
+        );
 
         $popup = new PopupMenu('cat_' . $cid, $lang->plotcp_admin_options);
         $popup->add_item($lang->plotcp_admin_edit, $base_url . '&amp;do=edit&amp;cid=' . $cid);
@@ -517,7 +523,7 @@ function plotcp_acp_categories(): void
     }
 
     if ($table->num_rows() === 0) {
-        $table->construct_cell($lang->plotcp_admin_no_categories, ['colspan' => 4]);
+        $table->construct_cell($lang->plotcp_admin_no_categories, ['colspan' => 5]);
         $table->construct_row();
     }
 
@@ -539,6 +545,9 @@ function plotcp_acp_categories(): void
     $container->output_row($lang->plotcp_admin_col_order, '',
         $form->generate_numeric_field('display_order',
             (int)($edit_row ? $edit_row['display_order'] : 0), ['min' => 0]), 'display_order');
+    $container->output_row($lang->plotcp_admin_col_show_in_current, $lang->plotcp_admin_category_show_in_current_hint,
+        $form->generate_yes_no_radio('show_in_current',
+            $edit_row ? (int)$edit_row['show_in_current'] : 1), 'show_in_current');
     $container->end();
 
     $buttons   = [];

@@ -25,6 +25,7 @@ $plugins->add_hook('newthread_start',                'plotcp_handle_newthread');
 $plugins->add_hook('newthread_do_newthread_end',     'plotcp_handle_newthread_save');
 $plugins->add_hook('forumdisplay_thread',            'plotcp_handle_forumdisplay_thread');
 $plugins->add_hook('rpgcalendar_collect_events',     'plotcp_rpgcalendar_collect');
+$plugins->add_hook('rpgcalendar_collect_calendars',  'plotcp_rpgcalendar_calendars');
 $plugins->add_hook('class_moderation_delete_thread', 'plotcp_handle_thread_delete');
 $plugins->add_hook('admin_tools_menu',               'plotcp_admin_menu');
 $plugins->add_hook('admin_tools_action_handler',     'plotcp_admin_action');
@@ -370,6 +371,16 @@ function plotcp_rpgcalendar_collect(array &$args): void
 {
     require_once MYBB_ROOT . 'inc/plugins/plotcp/calendar_provider.php';
     plotcp_collect_calendar_events($args);
+}
+
+/**
+ * Provider handler exposing plot categories as virtual sub-calendars to the
+ * RPG Calendar "My calendars" page (hook 'rpgcalendar_collect_calendars').
+ */
+function plotcp_rpgcalendar_calendars(array &$args): void
+{
+    require_once MYBB_ROOT . 'inc/plugins/plotcp/calendar_provider.php';
+    plotcp_collect_calendars($args);
 }
 
 /**

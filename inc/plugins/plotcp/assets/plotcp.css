@@ -177,3 +177,87 @@
     font-size: 0.9em;
     padding: 2px 8px;
 }
+
+/* Collapsible plot navigation. On desktop the toggle is hidden and the nav
+   panel is always shown (unchanged master-detail layout). On mobile the toggle
+   bar appears and the nav collapses – see the media query below. Pure CSS via a
+   hidden checkbox (:checked), no JavaScript. */
+.plotcp_nav_checkbox,
+.plotcp_nav_toggle {
+    display: none;
+}
+.plotcp_nav_panel {
+    display: block;
+}
+
+/* Mobile: the master-detail browse layout is a <table> (fixed-width nav cell +
+   detail cell) that does not reflow – on narrow screens the 230px nav squeezes
+   the plot content. Below the breakpoint we make the table cells stack (nav on
+   top, detail below, in document order) and turn the nav into a collapsible
+   panel that starts collapsed. overflow-x on the detail keeps a wide
+   (fixed-width) plot box from breaking the page layout. */
+@media (max-width: 760px) {
+    .plotcp_browse,
+    .plotcp_browse tbody,
+    .plotcp_browse tr,
+    .plotcp_browse_nav,
+    .plotcp_browse_detail {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .plotcp_browse_nav {
+        padding-right: 0;
+        margin-bottom: 15px;
+    }
+    .plotcp_browse_detail {
+        overflow-x: auto;
+    }
+    /* Keep the plotcp tables (nav plot list + detail info + linked scenes) as
+       proper full-width tables on mobile. Some themes reflow generic tables to
+       display:block on narrow screens, which breaks the thead colspan (headers
+       like "Burning Vincent" / "Verknüpfte Szenen" then only span their text
+       width) and gives rows uneven widths / inconsistent backgrounds. Forcing
+       table semantics restores the desktop look. Scoped to .plotcp_browse so it
+       covers both the nav and the detail tables (but not the outer layout table,
+       which stays block – it has no tborder class). */
+    .plotcp_browse table.tborder {
+        display: table !important;
+        width: 100% !important;
+    }
+    .plotcp_browse table.tborder > tbody {
+        display: table-row-group !important;
+    }
+    .plotcp_browse table.tborder > tbody > tr {
+        display: table-row !important;
+    }
+    .plotcp_browse table.tborder > tbody > tr > td {
+        display: table-cell !important;
+    }
+    /* toggle bar */
+    .plotcp_nav_toggle {
+        display: block;
+        cursor: pointer;
+        padding: 8px 12px;
+        font-weight: bold;
+        border: 1px solid rgba(128, 128, 128, 0.4);
+        border-radius: 4px;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .plotcp_nav_toggle::after {
+        content: " \25B8";   /* ▸ collapsed */
+        float: right;
+    }
+    .plotcp_nav_checkbox:checked ~ .plotcp_nav_toggle::after {
+        content: " \25BE";   /* ▾ expanded */
+    }
+    /* collapsed by default, expands when the (hidden) checkbox is checked */
+    .plotcp_nav_panel {
+        display: none;
+        margin-top: 8px;
+    }
+    .plotcp_nav_checkbox:checked ~ .plotcp_nav_panel {
+        display: block;
+    }
+}

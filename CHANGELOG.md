@@ -39,6 +39,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### New
 
+- Per-category **In current plots** toggle: each plot category now has a yes/no
+  switch (ACP → Plot Control Panel → Categories) that controls whether its plots
+  may appear in `{$plotcp_current_plots}`. Set to No, a category is excluded from
+  the current-plots box even when a plot's inplay date falls into the current
+  period. Defaults to Yes, so existing categories keep showing.
 - Random plot spotlight: a new global template variable `{$plotcp_random_plot}`
   shows one random published plot. Two settings drive it – **Random plot**
   (`off` / all published plots / only the current inplay months) and **Random
