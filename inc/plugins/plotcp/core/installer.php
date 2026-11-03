@@ -396,7 +396,7 @@ class Plotcp_Installer
             $cachefile = cache_stylesheet($tid, 'plotcp.css', $raw);
             $db->update_query('themestylesheets',
                 ['cachefile' => ($cachefile ?: "css.php?stylesheet={$sid}")],
-                "sid = '{$sid}'", 1);
+                'sid = ' . (int)$sid, 1);
             update_theme_stylesheet_list($tid);
         }
     }

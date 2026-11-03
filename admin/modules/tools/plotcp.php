@@ -148,11 +148,25 @@ function plotcp_acp_save_plot(int $pid): void
  * POST-only state changes (publish / delete)
  * ---------------------------------------------------------------------- */
 
+/**
+ * Schreibende ACP-Aktionen: verify_post_check() bricht im ACP nicht ab,
+ * daher Rückgabewert prüfen (debugging.md #23).
+ */
+function plotcp_acp_verify_key(): void
+{
+    global $mybb, $lang;
+
+    if (!verify_post_check($mybb->get_input('my_post_key'), true)) {
+        flash_message($lang->invalid_post_verify_key2, 'error');
+        admin_redirect('index.php?module=tools-plotcp');
+    }
+}
+
 if (in_array($action, ['publish', 'delete'], true)) {
     if ($mybb->request_method !== 'post') {
         admin_redirect('index.php?module=tools-plotcp');
     }
-    verify_post_check($mybb->get_input('my_post_key'));
+    plotcp_acp_verify_key();
 
     $pid  = (int)$mybb->get_input('pid', MyBB::INPUT_INT);
     $plot = Plotcp_Database::getPlot($pid);
@@ -283,7 +297,7 @@ function plotcp_acp_plot_list(): void
         }
         $popup->add_item($lang->plotcp_admin_delete,
             "javascript:document.getElementById('delete_{$pid}').submit();",
-            "return confirm('" . addslashes($lang->plotcp_admin_plot_delete_confirm) . "');");
+            'return confirm(' . htmlspecialchars_uni((string)json_encode($lang->plotcp_admin_plot_delete_confirm)) . ');');
 
         $forms = '';
         foreach (['publish', 'delete'] as $act) {
@@ -318,7 +332,7 @@ function plotcp_acp_plot_form(int $pid): void
     $base_url = 'index.php?module=tools-plotcp';
 
     if ($mybb->request_method === 'post') {
-        verify_post_check($mybb->get_input('my_post_key'));
+        plotcp_acp_verify_key();
         plotcp_acp_save_plot($pid);
     }
 
@@ -436,7 +450,7 @@ function plotcp_acp_categories(): void
     $base_url = 'index.php?module=tools-plotcp&action=categories';
 
     if ($mybb->request_method === 'post') {
-        verify_post_check($mybb->get_input('my_post_key'));
+        plotcp_acp_verify_key();
 
         // keep the random-plot category checkbox list in sync with the categories
         require_once MYBB_ROOT . 'inc/plugins/plotcp/core/installer.php';
@@ -509,7 +523,7 @@ function plotcp_acp_categories(): void
         $popup->add_item($lang->plotcp_admin_edit, $base_url . '&amp;do=edit&amp;cid=' . $cid);
         $popup->add_item($lang->plotcp_admin_delete,
             "javascript:document.getElementById('delete_cat_{$cid}').submit();",
-            "return confirm('" . addslashes($lang->plotcp_admin_category_delete_confirm) . "');");
+            'return confirm(' . htmlspecialchars_uni((string)json_encode($lang->plotcp_admin_category_delete_confirm)) . ');');
 
         $delete_form = '<form id="delete_cat_' . $cid . '" method="post" action="'
             . htmlspecialchars_uni($base_url) . '" style="display:none;">'

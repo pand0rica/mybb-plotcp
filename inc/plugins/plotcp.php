@@ -35,7 +35,7 @@ function plotcp_info(): array
     return [
         'name'          => 'Plot Control Panel',
         'description'   => 'Plot management for RPG forums: categories, plotting groups with self-service membership, preview/publish workflow with MyAlerts notifications, user submissions, scene linking and RPG Calendar integration.',
-        'website'       => 'https://github.com/pand0rica/plot-cp',
+        'website'       => 'https://github.com/pand0rica/mybb-plotcp',
         'author'        => 'pand0rica',
         'authorsite'    => 'https://github.com/pand0rica',
         'version'       => '1.1.0',
