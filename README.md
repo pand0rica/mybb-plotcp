@@ -25,7 +25,7 @@ installed.
 - **Scene linking**: in configured inplay/archive forums, the thread starter
   and the team can link a thread to a plot; the plot page lists all linked
   scenes, showing each scene's participants, location and in-play date from the
-  [Logbook](https://github.com/pand0rica/logbook) plugin when it is installed
+  [Logbook](https://github.com/pand0rica/mybb-logbooks) plugin when it is installed
 - **Current plots variable**: a global template variable `{$plotcp_current_plots}`
   lists the published plots of the current in-play months (a setting), usable in
   any template **and** inside forum/category descriptions
@@ -34,7 +34,7 @@ installed.
   (all plots or only the current in-play months)
 - **Optional IC date range** per plot with arbitrary years (negative years
   and year 0 included, proleptic Gregorian calendar) – dated plots appear
-  automatically in the [RPG Calendar](https://github.com/pand0rica/rpgcalendar)
+  automatically in the [RPG Calendar](https://github.com/pand0rica/mybb-rpgcalendar)
   month view via its provider hook
 
 ## Requirements
@@ -50,7 +50,7 @@ installed.
   in the calendar; without it nothing happens
 - **Optional:** EnhancedAccountSwitcher – "new group" alerts then go to main
   accounts only instead of all accounts
-- **Optional:** [Logbook](https://github.com/pand0rica/logbook) – linked scenes
+- **Optional:** [Logbook](https://github.com/pand0rica/mybb-logbooks) – linked scenes
   on a plot page then show the scene's participants, location, in-play date and
   daytime; without it a linked scene just shows its thread link
 
