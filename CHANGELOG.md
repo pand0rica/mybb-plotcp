@@ -39,8 +39,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Security (review)
 
-- The ACP module checks the return value of `verify_post_check()` via
-  `plotcp_acp_verify_key()` (in the ACP the function does not abort on its own).
+- ACP CSRF protection uses MyBB's native mechanism (dev kit `debugging.md` #23): write
+  handlers only act on POST and `admin/index.php` validates the `my_post_key` itself –
+  no own key check or helper.
 - ACP delete confirmations use `json_encode()` instead of `addslashes()`.
 
 ### Changed (review)
