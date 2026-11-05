@@ -1,5 +1,16 @@
 /* plotcp – plot control panel styles */
 
+/* Plugin-Variablen – verweisen auf die --h4w-Basis (Fallback = Original) */
+:root {
+    --plotcp-badge-preview-bg:     var(--h4w-badge-pending-bg, #f9edbe);
+    --plotcp-badge-preview-border: var(--h4w-badge-pending-border, #e0c243);
+    --plotcp-badge-preview-text:   var(--h4w-badge-pending-text, #6b5900);
+    --plotcp-badge-group-bg:       var(--h4w-badge-group-bg, #e3edf7);
+    --plotcp-badge-group-border:   var(--h4w-badge-group-border, #9db8d2);
+    --plotcp-badge-group-text:     var(--h4w-badge-group-text, #26537c);
+    --plotcp-meta:                 var(--h4w-text-muted, #666);
+}
+
 .plotcp_category {
     margin-bottom: 16px;
 }
@@ -72,20 +83,20 @@
 }
 
 .plotcp_badge--preview {
-    background: #f9edbe;
-    border: 1px solid #e0c243;
-    color: #6b5900;
+    background: var(--plotcp-badge-preview-bg);
+    border: 1px solid var(--plotcp-badge-preview-border);
+    color: var(--plotcp-badge-preview-text);
 }
 
 .plotcp_badge--group {
-    background: #e3edf7;
-    border: 1px solid #9db8d2;
-    color: #26537c;
+    background: var(--plotcp-badge-group-bg);
+    border: 1px solid var(--plotcp-badge-group-border);
+    color: var(--plotcp-badge-group-text);
 }
 
 .plotcp_meta {
     font-size: 0.9em;
-    color: #666;
+    color: var(--plotcp-meta);
     margin-top: 2px;
 }
 
@@ -143,19 +154,19 @@
 
 .plotcp_current_plot_date {
     font-size: 0.9em;
-    color: #666;
+    color: var(--plotcp-meta);
 }
 
 .plotcp_current_plots_empty {
     font-style: italic;
-    color: #666;
+    color: var(--plotcp-meta);
 }
 
 /* Random plot spotlight ({$plotcp_random_plot}). Light defaults – restyle in
    the plotcp_random_plot template or your theme. */
 .plotcp_random_plot_meta {
     font-size: 0.9em;
-    color: #666;
+    color: var(--plotcp-meta);
     margin-left: 6px;
 }
 
@@ -166,7 +177,7 @@
 
 .plotcp_random_plot_empty {
     font-style: italic;
-    color: #666;
+    color: var(--plotcp-meta);
 }
 
 .plotcp_inline_form {
