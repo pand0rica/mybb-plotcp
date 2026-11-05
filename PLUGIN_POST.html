@@ -1,0 +1,106 @@
+[size=x-large][b]Plot Control Panel[/b][/size]
+[i]Version 1.1.0[/i] – Alle Plots deines RPG-Forums an einem Ort: mit Kategorien, Vorschau und Veröffentlichung, Einreichungen und Szenenverknüpfung.
+
+[size=large][b]Worum geht's?[/b][/size]
+
+Plots stecken in vielen Foren in einzelnen Threads, Wikis oder Ankündigungen – wer neu dazukommt, findet den roten Faden kaum. Das Plot Control Panel sammelt alle Plots auf einer Seite, sortiert nach Kategorien und Inplay-Jahr. Das Team bereitet Plots als Vorschau vor und veröffentlicht sie, wenn sie fertig sind; Mitglieder reichen eigene Plots ein und verknüpfen ihre Szenen mit einem Plot. So sieht jede Person, welche Szenen zu welcher Geschichte gehören.
+
+[size=large][b]Highlights[/b][/size]
+
+[list]
+[*] Plotseite mit Kategorien als Tabs und Navigation nach Inplay-Jahr
+[*] Vorschau-und-Veröffentlichen-Ablauf mit Benachrichtigungen
+[*] Eigene Plots einreichen
+[*] Szenen per Dropdown mit einem Plot verknüpfen, Plot-Name in der Themenliste
+[*] Template-Variablen für aktuelle und zufällige Plots, Plots mit Datum automatisch im RPG-Kalender
+[/list]
+
+[size=large][b]Was das Plugin alles kann[/b][/size]
+
+[b]Für Mitglieder[/b]
+[list]
+[*][b]Plotseite[/b] – Jede Kategorie ist ein Tab, links die Plots nach Inplay-Jahr (neueste zuerst), rechts der gewählte Plot mit Ort, Ansprechpersonen, Beschreibung, Zeitraum und allen verknüpften Szenen. [i](plotcp.php)[/i]
+[*][b]Plot einreichen[/b] – Eigene Plots starten als Vorschau: Du und die Vorschau-Gruppen können sie schon lesen, alle anderen nach der Veröffentlichung. Bis dahin kannst du deinen Plot noch bearbeiten. [i](plotcp.php → Plot einreichen)[/i]
+[*][b]Szene verknüpfen[/b] – Beim Erstellen eines Themas im Inplay wählst du direkt einen Plot aus. In bestehenden Themen sehen die Person, die das Thema eröffnet hat, und das Team unter dem ersten Beitrag eine Plot-Box zum Verknüpfen und Lösen. [i](Neues Thema / Thread-Ansicht in Inplay- und Archivforen)[/i]
+[*][b]Plot in der Themenliste[/b] – Verknüpfte Themen tragen den Plot in eckigen Klammern vor dem Titel. Namen von Plots in Vorschau bleiben für alle ohne Vorschau-Recht verborgen. [i](Forenansicht)[/i]
+[/list]
+
+[b]Für Team & Moderation[/b]
+[list]
+[*][b]Plots anlegen und bearbeiten[/b] – Name, Kategorie, Plotgruppen, Ort, Ansprechpersonen, Beschreibung (MyCode und HTML) und optional ein Inplay-Zeitraum – auch mit negativen Jahren. Bearbeiten geht im ACP oder direkt auf der Plotseite. [i](ACP → Werkzeuge → Plot Control Panel)[/i]
+[*][b]Vorschau prüfen und veröffentlichen[/b] – Die Vorschau zeigt den Plot genau so, wie er später erscheint. Beim Veröffentlichen bekommen die Mitglieder der verknüpften Plotgruppen einen Alert; kommt später eine Gruppe dazu, wird nur diese benachrichtigt. [i](ACP oder Plotseite)[/i]
+[*][b]Kategorien verwalten[/b] – z. B. Plots, Userplots, Miniplots, Infos, Gerüchte, Schwarzes Brett. [i](ACP → Plot Control Panel → Kategorien)[/i]
+[/list]
+
+[b]Für Administratoren[/b]
+[list]
+[*][b]Aktuelle Plots[/b] – [i]{$plotcp_current_plots}[/i] listet die veröffentlichten Plots der eingestellten Inplay-Monate, in jedem Template und sogar in Forenbeschreibungen.
+[*][b]Zufälliger Plot[/b] – [i]{$plotcp_random_plot}[/i] stellt einen zufälligen veröffentlichten Plot vor, wahlweise aus allen Plots oder nur aus den aktuellen Inplay-Monaten und aus ausgewählten Kategorien.
+[/list]
+
+[b]Zusammenspiel mit anderen Plugins[/b]
+[list]
+[*][b]Plotting Groups[/b] – Plots lassen sich beliebig vielen Plotgruppen zuordnen (Abzeichen auf der Plotseite, Alerts beim Veröffentlichen). Ohne das Plugin gibt es einfach keine Gruppenfunktionen.
+[*][b]RPG-Kalender[/b] – Plots mit Datum erscheinen ohne weitere Einstellung in der Monatsansicht des Kalenders.
+[*][b]Logbook[/b] – Verknüpfte Szenen zeigen Teilnehmende, Ort, Inplay-Datum und Tageszeit; ohne Logbook nur den Link zum Thema.
+[*][b]MyAlerts[/b] – Alerts beim Veröffentlichen und bei neuen Einreichungen; jede Person kann sie im Benutzer-CP abschalten.
+[/list]
+
+[size=large][b]So sieht's aus[/b][/size]
+
+[i]Screenshot folgt[/i] – Plotseite mit Kategorien und Navigation
+[i]Screenshot folgt[/i] – Plot-Box in einem Inplay-Thema
+[i]Screenshot folgt[/i] – Plotliste im ACP
+
+[size=large][b]Einstellungen[/b][/size]
+
+[list]
+[*][b]Vorschau-Gruppen[/b] – Diese Gruppen sehen unveröffentlichte Plots. Team und einreichende Person sehen sie immer. [i](Standard: keine)[/i]
+[*][b]Team-Gruppen[/b] – Diese Gruppen veröffentlichen Plots, verwalten Verknüpfungen in allen Themen und bekommen Einreichungs-Alerts. [i](Standard: keine)[/i]
+[*][b]Inplay-Foren[/b] und [b]Archiv-Foren[/b] – Hier erscheinen Plot-Auswahl und Plot-Box. [i](Standard: keine)[/i]
+[*][b]Plot-Einreichungen erlauben[/b] – Mitglieder dürfen Plots einreichen. [i](Standard: Ja)[/i]
+[*][b]Aktuelle Inplay-Monate[/b] – z. B. „1487-3, 1487-4"; steuert die Liste der aktuellen Plots. [i](Standard: leer = aus)[/i]
+[*][b]Zufälliger Plot[/b] – Aus, alle veröffentlichten Plots oder nur aktuelle Inplay-Monate.
+[*][b]Kategorien für den zufälligen Plot[/b] – Aus welchen Kategorien gezogen wird. [i](Standard: keine Auswahl = alle)[/i]
+[/list]
+
+[size=large][b]Voraussetzungen[/b][/size]
+
+[list]
+[*] MyBB 1.8.x
+[*] PHP 7.4 oder 8.x
+[*] Optional: Plotting Groups, MyAlerts, RPG-Kalender, Logbook, Enhanced Account Switcher
+[/list]
+
+[size=large][b]Installation[/b][/size]
+
+[list=1]
+[*] Dateien in das MyBB-Stammverzeichnis kopieren (Ordnerstruktur beibehalten)
+[*] ACP → Konfiguration → Plugins → Plot Control Panel → Installieren & aktivieren
+[*] ACP → Werkzeuge → Plot Control Panel → Kategorien: mindestens eine Kategorie anlegen
+[*] ACP → Konfiguration → Einstellungen → Plot Control Panel → Team, Vorschau-Gruppen und Foren festlegen
+[*] Optional: Plotting Groups installieren, um Plots mit Gruppen zu verknüpfen
+[/list]
+
+[size=large][b]Update[/b][/size]
+
+[list=1]
+[*] Neue Dateien hochladen und vorhandene überschreiben
+[*] ACP → Konfiguration → Plugins → Plot Control Panel → Deaktivieren und wieder Aktivieren
+[/list]
+Templates werden neu eingespielt; Plots, Kategorien und Einstellungen bleiben erhalten. Beim Wechsel auf Plotting Groups zuerst dieses Plugin aktivieren – es übernimmt die bisherigen Gruppen.
+
+[size=large][b]Grenzen & Ausblick[/b][/size]
+
+Ein Thema kann immer nur mit einem Plot verknüpft sein. Plotgruppen verwaltet das Plot Control Panel nicht mehr selbst, dafür gibt es Plotting Groups.
+
+[size=large][b]Download & Quellcode[/b][/size]
+
+&raquo; [url=https://github.com/pand0rica/mybb-plotcp]GitHub: pand0rica/mybb-plotcp[/url] – Änderungen im [url=https://github.com/pand0rica/mybb-plotcp/blob/main/CHANGELOG.md]Changelog[/url], Lizenz GPL-3.0
+
+[size=large][b]Unterstützung[/b][/size]
+
+<i class="cp cp-tea"></i> Wenn dir das Plugin gefällt, kannst du mir gerne einen Tee spendieren: [url=https://ko-fi.com/pand0rica]ko-fi.com/pand0rica[/url]
+
+[size=small]Fragen, Bugs oder Feature-Wünsche gerne als GitHub Issue melden oder hier im Thread.
+Ich freue mich, wenn ihr mir den Link dalasst, wo das Plugin verwendet wird.[/size]

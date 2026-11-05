@@ -4,7 +4,7 @@ A MyBB 1.8 plugin for RPG forums that manages plots in one central place: plot
 categories, a preview/publish workflow with MyAlerts notifications, user
 submissions, scene linking for inplay threads and automatic RPG Calendar
 integration. Plots can be linked to **plotting groups** when the separate
-[Plotting Groups](https://github.com/pand0rica/plottinggroups) plugin is
+[Plotting Groups](https://github.com/pand0rica/mybb-plottinggroups) plugin is
 installed.
 
 ## Features
@@ -14,7 +14,7 @@ installed.
   a plot navigation on the left (grouped by inplay year, newest first) and the
   selected plot shown on the right
 - **Plotting groups (optional)**: with the separate
-  [Plotting Groups](https://github.com/pand0rica/plottinggroups) plugin
+  [Plotting Groups](https://github.com/pand0rica/mybb-plottinggroups) plugin
   installed, every plot can be linked to any number of groups (badges on the
   plot page, checkboxes in the plot forms) and publishing alerts the members of
   the linked groups. Without that plugin, plotcp simply shows no group features.
@@ -25,7 +25,7 @@ installed.
 - **Scene linking**: in configured inplay/archive forums, the thread starter
   and the team can link a thread to a plot; the plot page lists all linked
   scenes, showing each scene's participants, location and in-play date from the
-  [Logbook](https://github.com/pand0rica/logbook) plugin when it is installed
+  [Logbook](https://github.com/pand0rica/mybb-logbooks) plugin when it is installed
 - **Current plots variable**: a global template variable `{$plotcp_current_plots}`
   lists the published plots of the current in-play months (a setting), usable in
   any template **and** inside forum/category descriptions
@@ -34,7 +34,7 @@ installed.
   (all plots or only the current in-play months)
 - **Optional IC date range** per plot with arbitrary years (negative years
   and year 0 included, proleptic Gregorian calendar) – dated plots appear
-  automatically in the [RPG Calendar](https://github.com/pand0rica/rpgcalendar)
+  automatically in the [RPG Calendar](https://github.com/pand0rica/mybb-rpgcalendar)
   month view via its provider hook
 
 ## Requirements
@@ -43,14 +43,14 @@ installed.
 - PHP 7.4 or newer (tested up to PHP 8.1)
 - **Optional:** [MyAlerts](https://community.mybb.com/mods.php?action=view&pid=avau1249) –
   without it the plugin works normally, just without notifications
-- **Optional:** [Plotting Groups](https://github.com/pand0rica/plottinggroups) –
+- **Optional:** [Plotting Groups](https://github.com/pand0rica/mybb-plottinggroups) –
   required for the group features (linking plots to groups, group badges, publish
   alerts to group members); without it plotcp works without any group features
 - **Optional:** RPG Calendar (rpgcalendar) ≥ 1.0.0 – dated plots then appear
   in the calendar; without it nothing happens
 - **Optional:** EnhancedAccountSwitcher – "new group" alerts then go to main
   accounts only instead of all accounts
-- **Optional:** [Logbook](https://github.com/pand0rica/logbook) – linked scenes
+- **Optional:** [Logbook](https://github.com/pand0rica/mybb-logbooks) – linked scenes
   on a plot page then show the scene's participants, location, in-play date and
   daytime; without it a linked scene just shows its thread link
 
@@ -64,7 +64,7 @@ No other dependencies.
    - `inc/plugins/plotcp.php` and `inc/plugins/plotcp/` → `inc/plugins/`
    - `admin/modules/tools/plotcp.php` → `admin/modules/tools/`
    - `inc/languages/...` → the matching language folders
-2. Go to **ACP → Configuration → Plugins** and click **Activate** next to
+2. Go to **ACP → Configuration → Plugins** and click **Install & Activate** next to
    "Plot Control Panel".
 3. Go to **ACP → Configuration → Settings → Plot Control Panel** and configure
    the plugin (see [Configuration](#configuration)).
@@ -90,7 +90,7 @@ No other dependencies.
    tab **Categories** → enter name, description and order → **Save**. At
    least one category is required before plots can be created.
 2. **Plotting groups (optional):** install the
-   [Plotting Groups](https://github.com/pand0rica/plottinggroups) plugin to be
+   [Plotting Groups](https://github.com/pand0rica/mybb-plottinggroups) plugin to be
    able to link plots to groups. It manages all group creation/approval itself.
 3. **Configure settings:** ACP → Configuration → Settings → Plot Control
    Panel → set team groups, preview groups and the inplay/archive forums.
@@ -122,7 +122,7 @@ No other dependencies.
 ### Plotting groups
 
 Group creation, joining/leaving, proposals and the team review now live in the
-separate [Plotting Groups](https://github.com/pand0rica/plottinggroups) plugin.
+separate [Plotting Groups](https://github.com/pand0rica/mybb-plottinggroups) plugin.
 When it is installed, plotcp lets you link plots to those groups (checkboxes in
 the plot forms, badges on the plot page) and alerts the group members on publish.
 
@@ -165,7 +165,7 @@ Every user can control the plugin's notifications under
 - *A user submits a new plot* (relevant for the team)
 
 (Group-related alerts – new group, proposals, group tags – belong to the
-[Plotting Groups](https://github.com/pand0rica/plottinggroups) plugin.)
+[Plotting Groups](https://github.com/pand0rica/mybb-plottinggroups) plugin.)
 
 ### RPG Calendar
 

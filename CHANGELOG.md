@@ -37,6 +37,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   showed "the requested plot does not exist". The URL now uses a plain `&` that
   `htmlspecialchars_uni()` encodes exactly once.
 
+### Security (review)
+
+- ACP CSRF protection uses MyBB's native mechanism (dev kit `debugging.md` #23): write
+  handlers only act on POST and `admin/index.php` validates the `my_post_key` itself –
+  no own key check or helper.
+- ACP delete confirmations use `json_encode()` instead of `addslashes()`.
+
+### Changed (review)
+
+- “Cancel” on the plot edit form is a real `input.button` (GET form) instead of
+  `<a class="button">`.
+- Plugin website and README links point to `mybb-plotcp` / `mybb-plottinggroups`.
+
 ### New
 
 - Per-category **In current plots** toggle: each plot category now has a yes/no

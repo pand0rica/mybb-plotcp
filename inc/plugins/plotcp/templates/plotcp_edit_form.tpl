@@ -54,10 +54,11 @@
 </td>
 </tr>
 <tr>
-<td class="tfoot" colspan="2" align="center"><input type="submit" class="button" value="{$lang->plotcp_btn_save}" /> <a href="plotcp.php?action=view&amp;pid={$plot_id}" class="button">{$lang->plotcp_btn_cancel}</a></td>
+<td class="tfoot" colspan="2" align="center"><input type="submit" class="button" value="{$lang->plotcp_btn_save}" /> <input type="submit" class="button" form="plotcp_cancel_form" value="{$lang->plotcp_btn_cancel}" /></td>
 </tr>
 </table>
 </form>
+<form action="plotcp.php" method="get" id="plotcp_cancel_form"><input type="hidden" name="action" value="view" /><input type="hidden" name="pid" value="{$plot_id}" /></form>
 {$footer}
 </body>
 </html>
